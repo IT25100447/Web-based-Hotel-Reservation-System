@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Billing & Payment Verification - Staff')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="display: grid; grid-template-columns: 260px 1fr; gap: 2rem; align-items: start;">
+        <div th:replace="~{fragments/sidebar :: staffSidebar('payments')}"></div>
+
+        <div>
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Payment & Billing Management</h1>
+                    <p class="page-subtitle">Verify bank-transfer receipts, monitor deposits, and inspect transaction journals.</p>
+                </div>
+            </div>
+
+            <!-- Pending Verification Queue -->
+            <div th:if="${!pendingReceipts.empty}" class="card" style="border-top: 4px solid var(--warning); margin-bottom: 2rem;">
+                <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 0.25rem;">
+                    ⚠️ Pending Bank-Transfer Verifications
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+                    These payments require staff review of bank transfer slips before crediting the guest's invoice.
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Booking #</th>
+                                <th>Guest</th>
+                                <th>Amount</th>
+                                <th>Reference Slip #</th>
+                                <th>Date Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="pr : ${pendingReceipts}">
+                                <td><strong th:text="'#' + ${pr.reservationId}">#1</strong></td>
+                                <td th:text="${pr.guestName}">Guest</td>
+                                <td><strong th:text="'$' + ${pr.amount}">$200.00</strong></td>
+                                <td><code style="background: #f1f5f9; padding: 0.2rem 0.5rem; border-radius: 4px;" th:text="${pr.referenceNumber}">SLIP-123</code></td>
+                                <td th:text="${#temporals.format(pr.paymentDate, 'dd MMM yyyy HH:mm')}">Date</td>
+                                <td>
+                                    <div style="display: flex; gap: 0.4rem;">
+                                        <form th:action="@{'/staff/payments/verify/' + ${pr.paymentId}}" method="POST" style="display: inline;">
+                                            <input type="hidden" name="approve" value="true">
+                                            <button type="submit" class="btn btn-success btn-sm">✔ Verify & Credit</button>
+                                        </form>
+                                        <form th:action="@{'/staff/payments/verify/' + ${pr.paymentId}}" method="POST" style="display: inline;">
+                                            <input type="hidden" name="approve" value="false">
+                                            <button type="submit" class="btn btn-danger btn-sm">✕ Reject</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- All Payments Table -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);">
+                    <h3 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 1.25rem;">Transaction Journal</h3>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Txn ID</th>
+                                <th>Booking #</th>
+                                <th>Guest</th>
+                                <th>Method</th>
+                                <th>Amount</th>
+                                <th>Reference #</th>
+                                <th>Status</th>
+                                <th>Processed By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${payments}">
+                                <td><strong th:text="'#' + ${p.paymentId}">#1</strong></td>
+                                <td><a th:href="@{'/reservations/details/' + ${p.reservationId}}" th:text="'#' + ${p.reservationId}">#1</a></td>
+                                <td th:text="${p.guestName}">Kamal Perera</td>
+                                <td><span class="badge badge-info" th:text="${p.method}">CARD</span></td>
+                                <td><strong th:text="'$' + ${p.amount}">$200.00</strong></td>
+                                <td th:text="${p.referenceNumber}">TXN-123</td>
+                                <td>
+                                    <span th:class="'badge ' + (${p.status == 'VERIFIED' ? 'badge-success' : (p.status == 'FAILED' ? 'badge-danger' : 'badge-warning')})"
+                                          th:text="${p.status}">STATUS</span>
+                                </td>
+                                <td th:text="${p.staffName != null ? p.staffName : 'Online Portal'}">Staff</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

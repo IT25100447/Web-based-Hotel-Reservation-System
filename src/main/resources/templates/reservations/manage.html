@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Manage Reservations - Staff')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="display: grid; grid-template-columns: 260px 1fr; gap: 2rem; align-items: start;">
+        <div th:replace="~{fragments/sidebar :: staffSidebar('reservations')}"></div>
+
+        <div>
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Reservation Operations</h1>
+                    <p class="page-subtitle">Manage guest reservations, handle front desk check-in / check-out, and track room stays.</p>
+                </div>
+            </div>
+
+            <!-- Reservations Table -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Guest</th>
+                                <th>Branch & Room</th>
+                                <th>Dates</th>
+                                <th>Status</th>
+                                <th>Front Desk Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="res : ${reservations}">
+                                <td><strong th:text="'#' + ${res.reservationId}">#1</strong></td>
+                                <td>
+                                    <strong th:text="${res.guestName}">Kamal Perera</strong>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${res.guestEmail}">email</div>
+                                </td>
+                                <td>
+                                    <span th:text="${res.roomType} + ' (#' + ${res.roomNumber} + ')'">Deluxe</span>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${res.branchName}">Branch</div>
+                                </td>
+                                <td>
+                                    <span th:text="${res.checkInDate} + ' to ' + ${res.checkOutDate}">Dates</span>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${res.numberOfNights} + ' Night(s)'">Nights</div>
+                                </td>
+                                <td>
+                                    <span th:class="'badge ' + (${res.status == 'CHECKED_IN' ? 'badge-info' : (res.status == 'CONFIRMED' ? 'badge-success' : (res.status == 'CANCELLED' ? 'badge-danger' : 'badge-warning'))})"
+                                          th:text="${res.status}">STATUS</span>
+                                </td>
+                                <td>
+                                     <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                                        <!-- Check-In Action -->
+                                        <form th:if="${res.status == 'CONFIRMED' or res.status == 'MODIFIED'}"
+                                              th:action="@{'/staff/reservations/check-in/' + ${res.reservationId}}" method="POST">
+                                            <button type="submit" class="btn btn-success btn-sm" title="Check In Guest">Check-In</button>
+                                        </form>
+
+                                        <!-- Check-Out Action -->
+                                        <form th:if="${res.status == 'CHECKED_IN'}"
+                                              th:action="@{'/staff/reservations/check-out/' + ${res.reservationId}}" method="POST">
+                                            <button type="submit" class="btn btn-dark btn-sm" title="Check Out Guest">Check-Out</button>
+                                        </form>
+
+                                        <a th:href="@{'/reservations/details/' + ${res.reservationId}}" class="btn btn-outline btn-sm">Details</a>
+                                        <a th:href="@{'/payments/invoice/' + ${res.reservationId}}" class="btn btn-secondary btn-sm">Invoice</a>
+
+                                        <!-- Admin Delete Reservation -->
+                                        <form th:action="@{'/staff/reservations/delete/' + ${res.reservationId}}" method="POST"
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Permanently delete this reservation? This cannot be undone.')">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Admin: Delete Reservation">🗑 Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

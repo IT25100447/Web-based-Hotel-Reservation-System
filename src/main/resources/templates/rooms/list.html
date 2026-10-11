@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Available Rooms & Suites')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Explore Rooms & Suites</h1>
+            <p class="page-subtitle">Find and compare luxury accommodations across all hotel branches.</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <form th:action="@{/rooms}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) 120px; gap: 1rem; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Branch</label>
+                <select name="branchId" class="form-control">
+                    <option value="">All Branches</option>
+                    <option th:each="b : ${branches}"
+                            th:value="${b.branchId}"
+                            th:text="${b.name}"
+                            th:selected="${filter.branchId != null and filter.branchId == b.branchId}">Branch</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Room Type</label>
+                <input type="text" name="type" class="form-control" placeholder="e.g. Deluxe, Suite..." th:value="${filter.type}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Check-in</label>
+                <input type="date" name="checkInDate" id="listCheckIn" class="form-control" th:value="${filter.checkInDate}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Check-out</label>
+                <input type="date" name="checkOutDate" id="listCheckOut" class="form-control" th:value="${filter.checkOutDate}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Max Price ($)</label>
+                <input type="number" name="maxPrice" step="10" class="form-control" placeholder="Any" th:value="${filter.maxPrice}">
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary btn-block">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Display -->
+    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600; color: var(--text-muted);" th:text="${#lists.size(rooms)} + ' rooms found'">0 rooms found</span>
+        <a th:href="@{/rooms}" class="btn btn-outline btn-sm">Reset Filters</a>
+    </div>
+
+    <div th:if="${rooms.empty}" class="card" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+        <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 0.5rem;">No Rooms Match Your Criteria</h3>
+        <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem;">Try adjusting your dates, removing filters, or choosing a different branch.</p>
+        <a th:href="@{/rooms}" class="btn btn-primary">View All Available Rooms</a>
+    </div>
+
+    <div th:if="${!rooms.empty}" class="grid grid-cols-3">
+        <div th:each="room : ${rooms}" class="room-card">
+            <div class="room-thumb">
+                <img th:src="${room.primaryImageUrl}" alt="Room Picture">
+                <span th:class="'badge room-badge ' + (${room.status == 'AVAILABLE' ? 'badge-success' : (room.status == 'OCCUPIED' ? 'badge-danger' : 'badge-warning')})"
+                      th:text="${room.status}">AVAILABLE</span>
+                <span th:if="${room.hasDiscount()}"
+                      class="room-promo-badge"
+                      th:text="${room.activeDiscountPct} + '% OFF'">15% OFF</span>
+            </div>
+
+            <div class="room-body">
+                <h3 class="room-title" th:text="${room.type}">Deluxe Ocean View</h3>
+                <div class="room-branch" th:text="'📍 ' + ${room.branchName} + ' • Room #' + ${room.roomNumber}">Colombo City</div>
+
+                <div class="room-facilities">
+                    <span th:each="f : ${room.facilities}" class="facility-tag" th:text="${f}">Wi-Fi</span>
+                </div>
+
+                <div class="room-footer">
+                    <div class="room-price">
+                        <div>
+                            <span class="price-val" th:text="'$' + ${room.discountedPrice}">$120.00</span>
+                            <span th:if="${room.hasDiscount()}"
+                                  class="price-strike"
+                                  th:text="'$' + ${room.price}">$140.00</span>
+                        </div>
+                        <span class="price-sub">per night</span>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a th:href="@{/rooms/detail/{id}(id=${room.roomId})}" class="btn btn-outline btn-sm">Details</a>
+                        <a th:if="${room.status == 'AVAILABLE' and filter.checkInDate != null and filter.checkOutDate != null}"
+                           th:href="@{/reservations/book/{id}(id=${room.roomId}, checkIn=${filter.checkInDate}, checkOut=${filter.checkOutDate})}"
+                           class="btn btn-primary btn-sm">Book</a>
+                        <a th:if="${room.status == 'AVAILABLE' and (filter.checkInDate == null or filter.checkOutDate == null)}"
+                           th:href="@{/reservations/book/{id}(id=${room.roomId})}"
+                           class="btn btn-primary btn-sm">Book</a>
+                        <span th:if="${room.status != 'AVAILABLE'}" class="btn btn-secondary btn-sm" style="cursor: not-allowed; opacity: 0.6;">Unavailable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

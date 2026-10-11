@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head(${room.type} + ' - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="margin-bottom: 1.5rem;">
+        <a th:href="@{/rooms}" style="font-weight: 600; color: var(--text-muted);">&larr; Back to all rooms</a>
+    </div>
+
+    <div class="grid grid-cols-3" style="align-items: start; gap: 2rem;">
+        <!-- Left 2 Cols: Images and Overview -->
+        <div style="grid-column: span 2;">
+            <!-- Primary Image -->
+            <div style="height: 420px; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 1rem; box-shadow: var(--shadow-md);">
+                <img th:src="${room.primaryImageUrl}" alt="Room Primary" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+
+            <!-- Gallery Thumbs -->
+            <div th:if="${room.images != null and room.images.size() > 1}" style="display: flex; gap: 0.75rem; margin-bottom: 2rem; overflow-x: auto;">
+                <img th:each="img : ${room.images}" th:src="${img.imageUrl}" alt="Gallery Thumb"
+                     style="width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius-md); border: 2px solid var(--border); cursor: pointer;">
+            </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <span class="badge badge-info" th:text="${room.branchName}">Branch Name</span>
+                        <h1 class="page-title" style="margin-top: 0.5rem;" th:text="${room.type} + ' (Room #' + ${room.roomNumber} + ')'">Deluxe Suite</h1>
+                    </div>
+                    <span th:class="'badge ' + (${room.status == 'AVAILABLE' ? 'badge-success' : (room.status == 'OCCUPIED' ? 'badge-danger' : 'badge-warning')})"
+                          style="font-size: 0.85rem; padding: 0.4rem 1rem;"
+                          th:text="${room.status}">AVAILABLE</span>
+                </div>
+
+                <p style="color: var(--text-muted); line-height: 1.8; margin-bottom: 1.5rem;">
+                    Experience luxury and world-class service in this meticulously designed room. Complete with modern amenities, refined decor, and dedicated housekeeping to make your stay effortless and comfortable.
+                </p>
+
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--primary-dark);">Room Amenities & Facilities</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                    <div th:each="fac : ${room.facilities}" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: #334155;">
+                        <span style="color: var(--success); font-weight: bold;">✔</span>
+                        <span th:text="${fac}">Air Conditioning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Col: Booking Box -->
+        <div class="card" style="border-top: 4px solid var(--accent); position: sticky; top: 100px;">
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                <div style="font-size: 0.85rem; color: var(--text-muted);">Rate per Night</div>
+                <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+                    <span style="font-size: 2.2rem; font-weight: 800; color: var(--primary-dark);" th:text="'$' + ${room.discountedPrice}">$120.00</span>
+                    <span th:if="${room.hasDiscount()}"
+                          class="price-strike" style="font-size: 1.1rem;" th:text="'$' + ${room.price}">$140.00</span>
+                </div>
+                <span th:if="${room.hasDiscount()}"
+                      class="badge badge-warning" style="margin-top: 0.4rem;" th:text="${room.activeDiscountPct} + '% Seasonal Discount Applied'"></span>
+            </div>
+
+            <div th:if="${room.status == 'AVAILABLE'}">
+                <form th:action="@{/reservations/book/{id}(id=${room.roomId})}" method="GET">
+                    <div class="form-group">
+                        <label class="form-label">Check-in Date</label>
+                        <input type="date" name="checkIn" id="detailCheckIn" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Check-out Date</label>
+                        <input type="date" name="checkOut" id="detailCheckOut" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem;">
+                        Proceed to Reservation &rarr;
+                    </button>
+                </form>
+            </div>
+
+            <div th:if="${room.status != 'AVAILABLE'}" style="text-align: center; padding: 1.5rem 0;">
+                <div class="badge badge-danger" style="margin-bottom: 1rem; font-size: 0.85rem;">Currently Unavailable</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">This room is currently occupied or under maintenance.</p>
+                <a th:href="@{/rooms}" class="btn btn-outline btn-block btn-sm">Find Other Rooms</a>
+            </div>
+
+            <div style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+                <div>🔒 Instant online confirmation</div>
+                <div>🛡️ Guaranteed best rates across branches</div>
+                <div>💬 24/7 guest relations concierge assistance</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const inInput = document.getElementById('detailCheckIn');
+        const outInput = document.getElementById('detailCheckOut');
+        if (inInput && outInput) {
+            const today = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1);
+
+            // Process validation: Set minimum check-in date to today (past dates disallowed)
+            inInput.min = today.toISOString().split('T')[0];
+            inInput.value = today.toISOString().split('T')[0];
+            // Process validation: Set minimum check-out date to tomorrow (minimum 1 night stay)
+            outInput.min = tomorrow.toISOString().split('T')[0];
+            outInput.value = tomorrow.toISOString().split('T')[0];
+
+            // Process validation: Whenever check-in date is modified, update minimum check-out date
+            inInput.addEventListener('change', () => {
+                const newIn = new Date(inInput.value);
+                const nextDay = new Date(newIn);
+                nextDay.setDate(nextDay.getDate() + 1);
+                outInput.min = nextDay.toISOString().split('T')[0];
+                // Process validation: If selected check-out is before or equal to new check-in, advance it
+                if (new Date(outInput.value) <= newIn) {
+                    outInput.value = nextDay.toISOString().split('T')[0];
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

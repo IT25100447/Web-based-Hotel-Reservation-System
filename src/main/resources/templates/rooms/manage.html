@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Room Inventory & Readiness - Staff')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="display: grid; grid-template-columns: 260px 1fr; gap: 2rem; align-items: start;">
+        <div th:replace="~{fragments/sidebar :: staffSidebar('rooms')}"></div>
+
+        <div>
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Room Inventory & Readiness</h1>
+                    <p class="page-subtitle">Track room readiness, manage cleaning / maintenance status, and update branch room inventory.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openModal('addRoomModal')">
+                    + Add New Room
+                </button>
+            </div>
+
+            <!-- Room Table -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room #</th>
+                                <th>Branch</th>
+                                <th>Type</th>
+                                <th>Base Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="r : ${rooms}">
+                                <td>
+                                    <strong th:text="'#' + ${r.roomNumber}">#101</strong>
+                                </td>
+                                <td th:text="${r.branchName}">Colombo City</td>
+                                <td th:text="${r.type}">Deluxe Suite</td>
+                                <td><strong th:text="'$' + ${r.price}">$120.00</strong></td>
+                                <td>
+                                    <span th:class="'badge ' + (${r.status == 'AVAILABLE' ? 'badge-success' : (r.status == 'OCCUPIED' ? 'badge-danger' : 'badge-warning')})"
+                                          th:text="${r.status}">AVAILABLE</span>
+                                </td>
+                                 <td>
+                                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
+                                        <form th:action="@{/staff/rooms/status}" method="POST" style="display: inline-flex; gap: 0.35rem; align-items: center;">
+                                            <input type="hidden" name="roomId" th:value="${r.roomId}">
+                                            <select name="status" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.8rem; width: auto;">
+                                                <option value="AVAILABLE" th:selected="${r.status == 'AVAILABLE'}">Available (Clean)</option>
+                                                <option value="OCCUPIED" th:selected="${r.status == 'OCCUPIED'}">Occupied</option>
+                                                <option value="MAINTENANCE" th:selected="${r.status == 'MAINTENANCE'}">Maintenance</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-secondary btn-sm" title="Save Status">Save</button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline btn-sm"
+                                                th:data-id="${r.roomId}"
+                                                th:data-number="${r.roomNumber}"
+                                                th:data-type="${r.type}"
+                                                th:data-price="${r.price}"
+                                                th:data-branch="${r.branchId}"
+                                                th:data-status="${r.status}"
+                                                onclick="openEditRoomFromBtn(this)">Edit</button>
+                                        <form th:action="@{'/staff/rooms/delete/' + ${r.roomId}}" method="POST" style="display:inline;"
+                                              th:attr="onsubmit='return confirm(\'Delete Room #' + ${r.roomNumber} + '? This cannot be undone.\')'">
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Add Room Modal -->
+<div id="addRoomModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 550px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-family: var(--font-heading); color: var(--primary-dark);">Add New Room</h3>
+            <button type="button" class="btn btn-secondary btn-sm" data-close-modal>&times;</button>
+        </div>
+
+        <form th:action="@{/staff/rooms/create}" method="POST">
+            <div class="form-group">
+                <label class="form-label">Branch</label>
+                <select name="branchId" class="form-control" required>
+                    <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.name}">Branch</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Room Number</label>
+                    <input type="text" name="roomNumber" class="form-control" placeholder="e.g. 401" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nightly Price ($)</label>
+                    <input type="number" name="price" step="0.01" class="form-control" placeholder="150.00" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Room Type</label>
+                <input type="text" name="type" class="form-control" placeholder="e.g. Deluxe Ocean View Suite" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Initial Status</label>
+                <select name="status" class="form-control">
+                    <option value="AVAILABLE">Available (Clean)</option>
+                    <option value="MAINTENANCE">Under Maintenance / Setup</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Photo Image URL</label>
+                <input type="url" name="imageUrl" class="form-control" placeholder="https://images.unsplash.com/...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Facilities (comma-separated)</label>
+                <input type="text" name="facilityList" class="form-control" placeholder="Wi-Fi, Air Conditioning, Balcony, King Bed">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- Edit Room Modal -->
+<div id="editRoomModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="card" style="max-width:520px;width:92%;max-height:90vh;overflow-y:auto;border-radius:var(--radius-xl);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">
+            <h3 style="font-family:var(--font-heading);color:var(--primary-dark);">Edit Room Details</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('editRoomModal')">&times;</button>
+        </div>
+
+        <form th:action="@{/staff/rooms/update}" method="POST">
+            <input type="hidden" id="editRoomId" name="roomId">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Room Number</label>
+                    <input type="text" id="editRoomNumber" name="roomNumber" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nightly Price ($)</label>
+                    <input type="number" id="editRoomPrice" name="price" step="0.01" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Room Type</label>
+                <input type="text" id="editRoomType" name="type" class="form-control" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Branch</label>
+                    <select id="editRoomBranch" name="branchId" class="form-control">
+                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.name}">Branch</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="editRoomStatus" name="status" class="form-control">
+                        <option value="AVAILABLE">Available</option>
+                        <option value="OCCUPIED">Occupied</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editRoomModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    const m = document.getElementById(id);
+    if (m) {
+        m.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeModal(id) {
+    const m = document.getElementById(id);
+    if (m) {
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+function openEditRoomFromBtn(btn) {
+    document.getElementById('editRoomId').value = btn.dataset.id || '';
+    document.getElementById('editRoomNumber').value = btn.dataset.number || '';
+    document.getElementById('editRoomType').value = btn.dataset.type || '';
+    document.getElementById('editRoomPrice').value = btn.dataset.price || '';
+    document.getElementById('editRoomBranch').value = btn.dataset.branch || '';
+    document.getElementById('editRoomStatus').value = btn.dataset.status || 'AVAILABLE';
+    openModal('editRoomModal');
+}
+function openEditRoomModal(id, num, type, price, branchId, status) {
+    document.getElementById('editRoomId').value = id;
+    document.getElementById('editRoomNumber').value = num;
+    document.getElementById('editRoomType').value = type;
+    document.getElementById('editRoomPrice').value = price;
+    document.getElementById('editRoomBranch').value = branchId;
+    document.getElementById('editRoomStatus').value = status;
+    openModal('editRoomModal');
+}
+document.querySelectorAll('[data-close-modal]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const modal = this.closest('.modal-backdrop, [id$="Modal"]');
+        if (modal) closeModal(modal.id);
+    });
+});
+['addRoomModal', 'editRoomModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) closeModal(id);
+        });
+    }
+});
+</script>
+
+</body>
+</html>

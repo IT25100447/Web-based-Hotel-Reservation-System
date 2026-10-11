@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('User Control Panel - Staff Administration')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start;">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.1rem;" th:text="${currentUser != null ? currentUser.name.substring(0,1) : 'A'}">A</div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.95rem;" th:text="${currentUser != null ? currentUser.name : 'Admin'}">Admin</div>
+                        <div style="font-size:0.78rem;color:#94a3b8;" th:text="${currentUser != null ? currentUser.role : 'IT'}">IT</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="sidebar-section-label" th:if="${currentUser.isManager()}">Overview</div>
+                <a th:if="${currentUser.isManager()}" th:href="@{/dashboard}">📊 Dashboard</a>
+
+                <div class="sidebar-section-label" th:if="${currentUser.isManager()}">Operations</div>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/reservations}">📋 Reservations</a>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/rooms}">🏨 Rooms</a>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/payments}">💳 Billing</a>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/feedback}">💬 Complaints</a>
+
+                <div class="sidebar-section-label">User Management</div>
+                <a th:href="@{/staff/it/users}" class="active">👥 Staff Accounts</a>
+                <a th:href="@{/staff/it/guests}">🛎️ Guest Accounts</a>
+                <a th:href="@{/staff/logs}">🔒 Activity Logs</a>
+
+                <div style="margin-top:1.5rem;padding:0.75rem;">
+                    <a th:href="@{/logout}" class="btn btn-danger btn-block btn-sm">Sign Out</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div>
+            <div class="page-header">
+                <div>
+                    <span class="badge badge-info" style="margin-bottom:0.4rem;">USER CONTROL PANEL</span>
+                    <h1 class="page-title">Staff Account Administration</h1>
+                    <p class="page-subtitle">Manage internal user accounts, configure roles, access levels, and SLA targets.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openModal('addStaffModal')">
+                    + Create Staff Account
+                </button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-4" style="margin-bottom:2rem;">
+                <div class="stat-card" style="border-top:3px solid var(--primary);">
+                    <div>
+                        <div class="stat-val" th:text="${staffList != null ? staffList.size() : 0}">0</div>
+                        <div class="stat-label">Total Staff</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#eff6ff;">👥</div>
+                </div>
+                <div class="stat-card" style="border-top:3px solid var(--success);">
+                    <div>
+                        <div class="stat-val" style="color:var(--success);" th:text="${activeStaffCount != null ? activeStaffCount : 0}">0</div>
+                        <div class="stat-label">Active Staff</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#ecfdf5;">✅</div>
+                </div>
+                <div class="stat-card" style="border-top:3px solid var(--danger);">
+                    <div>
+                        <div class="stat-val" style="color:var(--danger);" th:text="${deactivatedStaffCount != null ? deactivatedStaffCount : 0}">0</div>
+                        <div class="stat-label">Deactivated</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#fef2f2;">🚫</div>
+                </div>
+                <div class="stat-card" style="border-top:3px solid var(--accent);">
+                    <div>
+                        <div class="stat-val" th:text="${branches != null ? branches.size() : 0}">0</div>
+                        <div class="stat-label">Branches</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#fef3c7;">🏢</div>
+                </div>
+            </div>
+
+            <!-- Staff Table -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.1rem;">All Staff Members</h3>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <input type="text" id="staffSearch" placeholder="🔍 Search by name or email..." class="form-control" style="width:260px;padding:0.5rem 0.85rem;font-size:0.88rem;" oninput="filterStaff()">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="staffTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name &amp; Email</th>
+                                <th>Branch</th>
+                                <th>Role</th>
+                                <th>Access Level</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s, iter : ${staffList}" class="staff-row" th:attr="data-name=${s.name},data-email=${s.email}">
+                                <td style="color:var(--text-muted);font-size:0.82rem;" th:text="${iter.index + 1}">1</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                                        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;flex-shrink:0;" th:text="${s.name.substring(0,1)}">A</div>
+                                        <div>
+                                            <div style="font-weight:700;font-size:0.9rem;" th:text="${s.name}">Name</div>
+                                            <div style="font-size:0.8rem;color:var(--text-muted);" th:text="${s.email}">email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="font-size:0.88rem;" th:text="${s.branchName != null and !s.branchName.isEmpty() ? s.branchName : 'All Branches (Global)'}">Branch</td>
+                                <td>
+                                    <span th:class="'badge ' + (${s.role == 'MANAGER' ? 'badge-danger' : (s.role == 'IT' ? 'badge-info' : (s.role == 'FINANCE' ? 'badge-warning' : 'badge-success'))})"
+                                          th:text="${s.role}">ROLE</span>
+                                </td>
+                                <td style="font-size:0.85rem;">
+                                    <span th:text="${s.accessLevel != null ? s.accessLevel : 'STANDARD'}">LEVEL</span>
+                                    <div style="font-size:0.78rem;color:var(--text-muted);" th:if="${s.responseSlaHrs != null}" th:text="'SLA: ' + ${s.responseSlaHrs} + 'h'">SLA</div>
+                                </td>
+                                <td>
+                                    <span th:class="'badge ' + (${s.status == 'ACTIVE' ? 'badge-success' : 'badge-danger'})"
+                                          th:text="${s.status}">STATUS</span>
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                                        <form th:action="@{'/staff/it/users/toggle/' + ${s.staffId}}" method="POST" style="display:inline;">
+                                            <button type="submit"
+                                                    th:class="${s.status == 'ACTIVE' ? 'btn btn-danger btn-sm' : 'btn btn-success btn-sm'}"
+                                                    th:text="${s.status == 'ACTIVE' ? 'Deactivate' : 'Activate'}">Toggle</button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline btn-sm"
+                                                th:data-id="${s.staffId}"
+                                                th:data-name="${s.name}"
+                                                th:data-email="${s.email}"
+                                                th:data-phone="${s.phone != null ? s.phone : ''}"
+                                                th:data-role="${s.role}"
+                                                th:data-branch="${s.branchId != null ? s.branchId : ''}"
+                                                th:data-access-level="${s.accessLevel != null ? s.accessLevel : 'STANDARD'}"
+                                                onclick="openEditStaffFromBtn(this)">Edit</button>
+                                        <form th:action="@{'/staff/it/users/reset-password/' + ${s.staffId}}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-secondary btn-sm"
+                                                    onclick="return confirm('Reset this staff member\'s password to Password123! ?')">Reset Pwd</button>
+                                        </form>
+                                        <form th:action="@{'/staff/it/users/delete/' + ${s.staffId}}" method="POST" style="display:inline;"
+                                              th:attr="onsubmit='return confirm(\'Delete staff account for ' + ${s.name} + '? This cannot be undone.\')'">
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <tr th:if="${staffList == null or staffList.empty}">
+                                <td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted);">
+                                    <div style="font-size:2.5rem;margin-bottom:0.75rem;">👥</div>
+                                    <p>No staff members found. Create the first account.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Add Staff Modal -->
+<div id="addStaffModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="card" style="max-width:580px;width:92%;max-height:90vh;overflow-y:auto;border-radius:var(--radius-xl);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">
+            <div>
+                <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.3rem;">Create Staff Account</h3>
+                <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.2rem;">Default password: <strong>Password123!</strong></p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('addStaffModal')" style="font-size:1.1rem;">&times;</button>
+        </div>
+
+        <form th:action="@{/staff/it/users/create}" method="POST" th:object="${newStaff}">
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" th:field="*{name}" class="form-control" placeholder="e.g. Jane Perera" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="form-label">Staff Email *</label>
+                    <input type="email" th:field="*{email}" class="form-control" placeholder="jane@smartstay.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" th:field="*{phone}" class="form-control" placeholder="+94 77 123 4567">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="form-label">Branch</label>
+                    <select th:field="*{branchId}" class="form-control">
+                        <option value="">-- All Branches (Global Access) --</option>
+                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.name}">Branch</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Staff Role *</label>
+                    <select th:field="*{role}" class="form-control" required>
+                        <option value="MANAGER">General Manager</option>
+                        <option value="FRONT_OFFICE">Front Office Manager</option>
+                        <option value="RESERVATIONS">Reservations Officer</option>
+                        <option value="GUEST_RELATIONS">Customer Relations</option>
+                        <option value="FINANCE">Finance / Admin</option>
+                        <option value="IT">IT Coordinator</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="form-label">Access Level</label>
+                    <select th:field="*{accessLevel}" class="form-control">
+                        <option value="STANDARD">Level 1 – Standard</option>
+                        <option value="LEVEL_2">Level 2 – Supervisor</option>
+                        <option value="LEVEL_3">Level 3 – Executive</option>
+                        <option value="ADMIN">System Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Response SLA (Hours)</label>
+                    <input type="number" th:field="*{responseSlaHrs}" class="form-control" placeholder="e.g. 4" min="1" max="72">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Default Password</label>
+                <input type="text" th:field="*{password}" class="form-control" value="Password123!" required>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addStaffModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Staff Modal -->
+<div id="editStaffModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="card" style="max-width:480px;width:92%;border-radius:var(--radius-xl);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">
+            <h3 style="font-family:var(--font-heading);color:var(--primary-dark);">Edit Staff Details</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('editStaffModal')">&times;</button>
+        </div>
+        <form th:action="@{/staff/it/users/update}" method="POST">
+            <input type="hidden" id="editStaffId" name="staffId">
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" id="editStaffName" name="name" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" id="editStaffEmail" name="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" id="editStaffPhone" name="phone" class="form-control">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="form-label">Role *</label>
+                    <select id="editStaffRole" name="role" class="form-control">
+                        <option value="MANAGER">General Manager</option>
+                        <option value="FRONT_OFFICE">Front Office</option>
+                        <option value="RESERVATIONS">Reservations</option>
+                        <option value="GUEST_RELATIONS">Guest Relations</option>
+                        <option value="FINANCE">Finance</option>
+                        <option value="IT">IT Coordinator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Branch</label>
+                    <select id="editStaffBranch" name="branchId" class="form-control">
+                        <option value="">-- All Branches (Global Access) --</option>
+                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.name}">Branch</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Access Level</label>
+                <select id="editStaffAccessLevel" name="accessLevel" class="form-control">
+                    <option value="STANDARD">Level 1 – Standard</option>
+                    <option value="LEVEL_2">Level 2 – Supervisor</option>
+                    <option value="LEVEL_3">Level 3 – Executive</option>
+                    <option value="ADMIN">System Admin</option>
+                </select>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editStaffModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    function openModal(id) {
+        const m = document.getElementById(id);
+        m.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+        const m = document.getElementById(id);
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    function openEditStaffFromBtn(btn) {
+        document.getElementById('editStaffId').value = btn.dataset.id || '';
+        document.getElementById('editStaffName').value = btn.dataset.name || '';
+        document.getElementById('editStaffEmail').value = btn.dataset.email || '';
+        document.getElementById('editStaffPhone').value = btn.dataset.phone || '';
+        document.getElementById('editStaffRole').value = btn.dataset.role || 'FRONT_OFFICE';
+        document.getElementById('editStaffBranch').value = btn.dataset.branch || '';
+        document.getElementById('editStaffAccessLevel').value = btn.dataset.accessLevel || 'STANDARD';
+        openModal('editStaffModal');
+    }
+    function openEditModal(id, name, email, phone, role, branchId) {
+        document.getElementById('editStaffId').value = id;
+        document.getElementById('editStaffName').value = name;
+        document.getElementById('editStaffEmail').value = email;
+        document.getElementById('editStaffPhone').value = phone;
+        document.getElementById('editStaffRole').value = role;
+        document.getElementById('editStaffBranch').value = branchId;
+        openModal('editStaffModal');
+    }
+    function filterStaff() {
+        const q = document.getElementById('staffSearch').value.toLowerCase();
+        document.querySelectorAll('.staff-row').forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const email = (row.getAttribute('data-email') || '').toLowerCase();
+            row.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
+        });
+    }
+    // Close modals on backdrop click
+    ['addStaffModal','editStaffModal'].forEach(id => {
+        document.getElementById(id).addEventListener('click', function(e) {
+            if (e.target === this) closeModal(id);
+        });
+    });
+</script>
+</body>
+</html>

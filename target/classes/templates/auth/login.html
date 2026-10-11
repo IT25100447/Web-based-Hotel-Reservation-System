@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Log In - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content" style="max-width: 500px;">
+    <div class="card" style="padding: 2.5rem 2rem; border-top: 4px solid var(--accent);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="logo" style="color: var(--primary-dark); font-size: 2rem; justify-content: center; margin-bottom: 0.5rem;">
+                <span style="color: var(--accent);">✦</span> SmartStay
+            </div>
+            <h2 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 1.5rem;">Account Sign In</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in as a Hotel Guest or Staff Member</p>
+        </div>
+
+        <form th:action="@{/login}" method="POST" th:object="${loginDto}">
+            <!-- User Type Radio Toggle -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; background: #f1f5f9; padding: 0.4rem; border-radius: var(--radius-md);">
+                <label style="flex: 1; text-align: center; padding: 0.5rem; cursor: pointer; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;"
+                       id="labelGuest" onclick="selectUserType('GUEST')">
+                    <input type="radio" th:field="*{userType}" value="GUEST" style="display: none;" checked> 🛎️ Guest
+                </label>
+                <label style="flex: 1; text-align: center; padding: 0.5rem; cursor: pointer; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;"
+                       id="labelStaff" onclick="selectUserType('STAFF')">
+                    <input type="radio" th:field="*{userType}" value="STAFF" style="display: none;"> 💼 Staff Member
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="your.email@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <label class="form-label" style="margin-bottom: 0;">Password *</label>
+                    <a th:href="@{/reset-password}" style="font-size: 0.8rem; color: var(--primary);">Forgot Password?</a>
+                </div>
+                <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem; font-size: 1rem; margin-top: 1rem;">
+                Sign In &rarr;
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted);">
+            Don't have a guest account? <a th:href="@{/register}" style="font-weight: 600;">Register here</a>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    function selectUserType(type) {
+        const isGuest = (type === 'GUEST');
+        const labelGuest = document.getElementById('labelGuest');
+        const labelStaff = document.getElementById('labelStaff');
+        const radios = document.getElementsByName('userType');
+
+        for (let r of radios) {
+            if (r.value === type) r.checked = true;
+        }
+
+        if (isGuest) {
+            labelGuest.style.background = '#fff';
+            labelGuest.style.boxShadow = 'var(--shadow-sm)';
+            labelStaff.style.background = 'transparent';
+            labelStaff.style.boxShadow = 'none';
+        } else {
+            labelStaff.style.background = '#fff';
+            labelStaff.style.boxShadow = 'var(--shadow-sm)';
+            labelGuest.style.background = 'transparent';
+            labelGuest.style.boxShadow = 'none';
+        }
+    }
+
+    function quickFill(email, type) {
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = 'Password123!';
+        const radios = document.getElementsByName('userType');
+        for (let r of radios) {
+            if (r.value === type) r.checked = true;
+        }
+        selectUserType(type);
+    }
+
+    // Initialize toggle style
+    document.addEventListener('DOMContentLoaded', () => {
+        selectUserType('GUEST');
+    });
+</script>
+
+</body>
+</html>

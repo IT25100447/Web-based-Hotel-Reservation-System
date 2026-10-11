@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('System Notice - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+
+<main class="main-content" style="max-width: 600px; text-align: center; padding: 4rem 1.5rem;">
+    <div class="card" style="padding: 3rem 2rem; border-top: 4px solid var(--danger);">
+        <div style="font-size: 3.5rem; color: var(--danger); margin-bottom: 1rem;">⚠️</div>
+        <h1 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 1.75rem; margin-bottom: 0.75rem;"
+            th:text="${errorCode != null and errorCode != '500' ? errorCode : 'System Notice'}">System Notice</h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem; line-height: 1.6;"
+           th:text="${errorMessage != null ? errorMessage : 'An unexpected error occurred while processing your request. Please try again.'}">
+            An unexpected error occurred.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="javascript:history.back()" class="btn btn-secondary">&larr; Go Back</a>
+            <a th:href="@{/}" class="btn btn-primary">Return to Home</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

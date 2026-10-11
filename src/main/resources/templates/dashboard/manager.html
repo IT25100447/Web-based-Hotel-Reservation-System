@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Executive Dashboard - General Manager')}"></head>
+<style>
+    .mgr-layout { display:grid; grid-template-columns:240px 1fr; gap:2rem; align-items:start; }
+    .mgr-sidebar { background:linear-gradient(180deg,#0f172a 0%,#1e3a8a 100%); border-radius:var(--radius-xl); padding:1.5rem 0; position:sticky; top:90px; min-height:calc(100vh - 140px); }
+    .mgr-profile { padding:1.25rem 1.5rem 1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:0.75rem; }
+    .mgr-avatar { width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:0.6rem; }
+    .mgr-name { font-weight:700;font-size:0.95rem;color:#f1f5f9; }
+    .mgr-role-tag { font-size:0.72rem;color:#f59e0b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em; }
+    .mgr-nav-section { padding:0.5rem 1rem 0.25rem;font-size:0.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em; }
+    .mgr-nav-item { display:flex;align-items:center;gap:0.65rem;padding:0.7rem 1.5rem;color:#94a3b8;font-size:0.88rem;font-weight:500;text-decoration:none;transition:all 0.18s;border-left:3px solid transparent;cursor:pointer; }
+    .mgr-nav-item:hover { color:#f1f5f9;background:rgba(255,255,255,0.06); }
+    .mgr-nav-item.active { color:#fff;background:rgba(245,158,11,0.18);border-left-color:#f59e0b;font-weight:600; }
+    .mgr-nav-item .nav-icon { font-size:1rem;width:20px;text-align:center; }
+    .mgr-tab-content { display:none; }
+    .mgr-tab-content.active { display:block; }
+    .kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem; }
+    .kpi-card { background:#fff;border-radius:var(--radius-lg);padding:1.4rem 1.5rem;box-shadow:var(--shadow-sm);border-top:4px solid transparent;transition:transform 0.2s,box-shadow 0.2s; }
+    .kpi-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-lg); }
+    .kpi-val { font-size:2rem;font-weight:800;line-height:1;margin-bottom:0.3rem; }
+    .kpi-label { font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600; }
+    .kpi-sub { font-size:0.75rem;margin-top:0.3rem; }
+    .kpi-icon { font-size:1.6rem; }
+    .chart-card { background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:1.5rem;margin-bottom:1.5rem; }
+    .chart-card h3 { font-family:var(--font-heading);color:var(--primary-dark);font-size:1.1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem; }
+    .promo-card { background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1.5px solid #f59e0b;border-radius:var(--radius-lg);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:0.85rem;transition:all 0.2s; }
+    .promo-card:hover { transform:translateX(3px);box-shadow:0 4px 12px rgba(245,158,11,0.15); }
+    .promo-badge-pct { background:#f59e0b;color:#fff;border-radius:999px;font-size:0.82rem;font-weight:700;padding:0.2rem 0.7rem; }
+    .promo-status-active { color:#16a34a;font-weight:700;font-size:0.82rem; }
+    .promo-status-expired { color:#94a3b8;font-weight:600;font-size:0.82rem; }
+    .promo-status-upcoming { color:#2563eb;font-weight:600;font-size:0.82rem; }
+    .promo-form-card { background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1.5px dashed #3b82f6;border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:2rem; }
+    .analytics-bar-row { display:flex;align-items:center;gap:1rem;margin-bottom:0.85rem; }
+    .analytics-bar-label { width:130px;font-size:0.84rem;color:var(--text-muted);flex-shrink:0; }
+    .analytics-bar-track { flex:1;height:10px;background:#f1f5f9;border-radius:999px;overflow:hidden; }
+    .analytics-bar-fill { height:100%;border-radius:999px;background:linear-gradient(90deg,#1e3a8a,#3b82f6);transition:width 1s ease; }
+    .analytics-bar-val { width:60px;text-align:right;font-size:0.84rem;font-weight:700;color:var(--primary-dark); }
+    .report-btn { display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border:none;border-radius:var(--radius-md);padding:0.7rem 1.4rem;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none; }
+    .report-btn:hover { opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(30,58,138,0.3); }
+</style>
+<body>
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+<main class="main-content">
+    <div class="mgr-layout">
+        <!-- SIDEBAR -->
+        <div class="mgr-sidebar">
+            <div class="mgr-profile">
+                <div class="mgr-avatar" th:text="${currentUser != null ? currentUser.name.substring(0,1) : 'M'}">M</div>
+                <div class="mgr-name" th:text="${currentUser != null ? currentUser.name : 'Manager'}">Manager</div>
+                <div class="mgr-role-tag">⭐ General Manager</div>
+            </div>
+            <div class="mgr-nav-section">Overview</div>
+            <a class="mgr-nav-item" th:classappend="${activeTab == 'dashboard' or activeTab == null ? ' active' : ''}" onclick="switchTab('dashboard'); return false;" href="#">
+                <span class="nav-icon">📊</span> Dashboard
+            </a>
+            <a class="mgr-nav-item" th:classappend="${activeTab == 'reports' ? ' active' : ''}" onclick="switchTab('reports'); return false;" href="#">
+                <span class="nav-icon">📈</span> Reports &amp; Analytics
+            </a>
+            <div class="mgr-nav-section">Operations</div>
+            <a class="mgr-nav-item" th:href="@{/staff/reservations}"><span class="nav-icon">📋</span> Bookings</a>
+            <a class="mgr-nav-item" th:href="@{/staff/rooms}"><span class="nav-icon">🏠</span> Rooms</a>
+            <a class="mgr-nav-item" th:href="@{/staff/payments}"><span class="nav-icon">💳</span> Billing</a>
+            <a class="mgr-nav-item" th:href="@{/staff/feedback}"><span class="nav-icon">💬</span> Complaints</a>
+            <div class="mgr-nav-section">Administration</div>
+            <a class="mgr-nav-item" th:classappend="${activeTab == 'promotions' ? ' active' : ''}" onclick="switchTab('promotions'); return false;" href="#">
+                <span class="nav-icon">🎁</span> Promotions
+            </a>
+            <a class="mgr-nav-item" th:href="@{/staff/it/users}"><span class="nav-icon">👥</span> Staff Admin</a>
+            <a class="mgr-nav-item" th:href="@{/staff/logs}"><span class="nav-icon">🔒</span> Activity Logs</a>
+            <div style="padding:1rem 1.25rem;margin-top:1rem;border-top:1px solid rgba(255,255,255,0.1);">
+                <a th:href="@{/logout}" class="btn btn-danger btn-block btn-sm">Sign Out</a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div>
+
+            <!-- TAB: DASHBOARD -->
+            <div id="tab-dashboard" class="mgr-tab-content" th:classappend="${activeTab == 'dashboard' or activeTab == null ? ' active' : ''}">
+                <div class="page-header">
+                    <div>
+                        <span class="badge badge-warning" style="margin-bottom:0.4rem;">EXECUTIVE SUITE</span>
+                        <h1 class="page-title">Business Overview</h1>
+                        <p class="page-subtitle">Real-time hotel performance, revenue, and operational metrics.</p>
+                    </div>
+                    <span style="font-size:0.85rem;color:var(--text-muted);" id="liveDateTime"></span>
+                </div>
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card" style="border-top-color:var(--success);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <div class="kpi-val" style="color:var(--success);" th:text="'$' + ${stats.totalRevenue}">$0</div>
+                                <div class="kpi-label">Verified Revenue</div>
+                                <div class="kpi-sub" style="color:var(--success);">All-time verified</div>
+                            </div>
+                            <div class="kpi-icon">💰</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color:#3b82f6;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <div class="kpi-val" style="color:#3b82f6;" th:text="${stats.occupancyRate} + '%'">0%</div>
+                                <div class="kpi-label">Occupancy Rate</div>
+                                <div class="kpi-sub" style="color:var(--text-muted);">Chain-wide average</div>
+                            </div>
+                            <div class="kpi-icon">🏠</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color:var(--warning);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <div class="kpi-val" style="color:var(--warning);" th:text="'$' + ${stats.totalOutstanding}">$0</div>
+                                <div class="kpi-label">Outstanding Balance</div>
+                                <div class="kpi-sub" style="color:var(--warning);">Pending collection</div>
+                            </div>
+                            <div class="kpi-icon">⚖️</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color:var(--accent);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <div class="kpi-val" th:text="${stats.totalReservations}">0</div>
+                                <div class="kpi-label">Total Reservations</div>
+                                <div class="kpi-sub" style="color:var(--text-muted);" th:text="${stats.activeReservations} + ' active'">Active</div>
+                            </div>
+                            <div class="kpi-icon">📋</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Metrics Row -->
+                <div class="grid grid-cols-3" style="margin-bottom:2rem;">
+                    <div class="card">
+                        <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.05rem;margin-bottom:1.25rem;">🏠 Room Inventory</h3>
+                        <div style="display:flex;flex-direction:column;gap:1rem;">
+                            <div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:0.4rem;"><span style="color:var(--success);font-weight:600;">Available</span><strong th:text="${stats.availableRooms} + ' rooms'">0</strong></div>
+                                <div class="progress-bar"><div class="progress-fill-success" th:style="'width:' + (${stats.totalRooms > 0 ? (stats.availableRooms * 100 / stats.totalRooms) : 0}) + '%'"></div></div>
+                            </div>
+                            <div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:0.4rem;"><span style="color:var(--danger);font-weight:600;">Occupied</span><strong th:text="${stats.occupiedRooms} + ' rooms'">0</strong></div>
+                                <div class="progress-bar"><div class="progress-fill-danger" th:style="'width:' + (${stats.totalRooms > 0 ? (stats.occupiedRooms * 100 / stats.totalRooms) : 0}) + '%'"></div></div>
+                            </div>
+                            <div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:0.4rem;"><span style="color:var(--warning);font-weight:600;">Maintenance</span><strong th:text="${stats.maintenanceRooms} + ' rooms'">0</strong></div>
+                                <div class="progress-bar"><div class="progress-fill-accent" th:style="'width:' + (${stats.totalRooms > 0 ? (stats.maintenanceRooms * 100 / stats.totalRooms) : 0}) + '%'"></div></div>
+                            </div>
+                            <div style="padding-top:0.75rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.88rem;"><span style="color:var(--text-muted);">Total Inventory</span><strong th:text="${stats.totalRooms} + ' rooms'">0</strong></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.05rem;margin-bottom:1.25rem;">💬 Guest Service SLA</h3>
+                        <div style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.9rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--text-muted);">Total Tickets</span><strong th:text="${stats.totalComplaints}">0</strong></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--danger);">● Open</span><span class="badge badge-danger" th:text="${stats.openComplaints}">0</span></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--success);">● Resolved</span><span class="badge badge-success" th:text="${stats.resolvedComplaints}">0</span></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--text-muted);">Active Staff</span><strong th:text="${stats.totalStaff} + ' members'">0</strong></div>
+                            <a th:href="@{/staff/feedback}" class="btn btn-outline btn-block btn-sm" style="margin-top:0.5rem;">Manage Complaints</a>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.05rem;margin-bottom:1.25rem;">📋 Booking Overview</h3>
+                        <div style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.9rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--success);">● Active Stays</span><span class="badge badge-success" th:text="${stats.activeReservations}">0</span></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--danger);">● Cancellations</span><span class="badge badge-danger" th:text="${stats.cancelledReservations}">0</span></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--text-muted);">Total Bookings</span><strong th:text="${stats.totalReservations}">0</strong></div>
+                            <div style="padding-top:0.5rem;border-top:1px solid var(--border);display:flex;gap:0.5rem;flex-wrap:wrap;">
+                                <a th:href="@{/staff/reservations}" class="btn btn-primary btn-sm" style="flex:1;">View Bookings</a>
+                                <a th:href="@{/staff/logs}" class="btn btn-outline btn-sm" style="flex:1;">Audit Logs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Branch Performance -->
+                <div class="card" style="padding:0;overflow:hidden;margin-bottom:2rem;">
+                    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                        <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.1rem;">🏢 Multi-Branch Revenue &amp; Performance</h3>
+                        <span class="badge badge-info">Live Data</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th>Branch</th><th>Total Bookings</th><th>Revenue Generated</th><th>Performance</th></tr></thead>
+                            <tbody>
+                                <tr th:each="bp : ${stats.branchPerformance}">
+                                    <td><div style="display:flex;align-items:center;gap:0.75rem;"><div style="width:36px;height:36px;border-radius:var(--radius-md);background:linear-gradient(135deg,#1e3a8a,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;">🏠</div><strong th:text="${bp.branch_name}">Branch</strong></div></td>
+                                    <td th:text="${bp.booking_count} + ' Bookings'">0</td>
+                                    <td><strong style="color:var(--success);" th:text="'$' + ${bp.revenue}">$0</strong></td>
+                                    <td><span th:class="${bp.booking_count > 5 ? 'badge badge-success' : (bp.booking_count > 2 ? 'badge badge-warning' : 'badge badge-danger')}" th:text="${bp.booking_count > 5 ? 'High Performing' : (bp.booking_count > 2 ? 'Moderate' : 'Needs Attention')}">Status</span></td>
+                                </tr>
+                                <tr th:if="${stats.branchPerformance == null or stats.branchPerformance.empty}"><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem;">No branch data available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Recent Reservations -->
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                        <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.1rem;">🕒 Recent Reservations</h3>
+                        <a th:href="@{/staff/reservations}" class="btn btn-outline btn-sm">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th>#ID</th><th>Guest</th><th>Room / Branch</th><th>Check-In</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr th:each="rb : ${stats.recentBookings}">
+                                    <td style="font-size:0.82rem;color:var(--text-muted);" th:text="'#' + ${rb.reservation_id}">#1</td>
+                                    <td><strong th:text="${rb.guest_name}">Guest</strong></td>
+                                    <td style="font-size:0.88rem;" th:text="${rb.room_number} + ' · ' + ${rb.branch_name}">101 · Branch</td>
+                                    <td style="font-size:0.88rem;" th:text="${rb.check_in_date}">Date</td>
+                                    <td><span th:class="'badge ' + (${rb.status == 'CONFIRMED' ? 'badge-success' : (rb.status == 'CANCELLED' ? 'badge-danger' : (rb.status == 'CHECKED_IN' ? 'badge-info' : 'badge-warning'))})" th:text="${rb.status}">STATUS</span></td>
+                                </tr>
+                                <tr th:if="${stats.recentBookings == null or stats.recentBookings.empty}"><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">No recent bookings found.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: REPORTS & ANALYTICS -->
+            <div id="tab-reports" class="mgr-tab-content" th:classappend="${activeTab == 'reports' ? ' active' : ''}">
+                <div class="page-header">
+                    <div>
+                        <span class="badge badge-info" style="margin-bottom:0.4rem;">ANALYTICS</span>
+                        <h1 class="page-title">Reports &amp; Analytics</h1>
+                        <p class="page-subtitle">Comprehensive business intelligence and performance reporting.</p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <button class="report-btn" onclick="window.print()">🖨️ Print Report</button>
+                        <button class="report-btn" style="background:linear-gradient(135deg,#16a34a,#22c55e);" onclick="exportCSV()">⬇️ Export CSV</button>
+                    </div>
+                </div>
+                <!-- Summary KPIs -->
+                <div class="kpi-grid">
+                    <div class="kpi-card" style="border-top-color:var(--success);"><div class="kpi-val" style="color:var(--success);" th:text="'$' + ${stats.totalRevenue}">$0</div><div class="kpi-label">Total Revenue</div></div>
+                    <div class="kpi-card" style="border-top-color:#3b82f6;"><div class="kpi-val" th:text="${stats.totalReservations}">0</div><div class="kpi-label">Total Bookings</div></div>
+                    <div class="kpi-card" style="border-top-color:var(--danger);"><div class="kpi-val" th:text="${stats.cancelledReservations}">0</div><div class="kpi-label">Cancellations</div></div>
+                    <div class="kpi-card" style="border-top-color:var(--warning);"><div class="kpi-val" style="color:var(--warning);" th:text="'$' + ${stats.totalOutstanding}">$0</div><div class="kpi-label">Outstanding Balance</div></div>
+                </div>
+                <!-- Charts row -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+                    <div class="chart-card">
+                        <h3>📊 Room Status Breakdown</h3>
+                        <div class="analytics-bar-row"><div class="analytics-bar-label">Available</div><div class="analytics-bar-track"><div class="analytics-bar-fill" th:style="'width:' + (${stats.totalRooms > 0 ? (stats.availableRooms * 100 / stats.totalRooms) : 0}) + '%; background:linear-gradient(90deg,#16a34a,#22c55e);'"></div></div><div class="analytics-bar-val" th:text="${stats.availableRooms}">0</div></div>
+                        <div class="analytics-bar-row"><div class="analytics-bar-label">Occupied</div><div class="analytics-bar-track"><div class="analytics-bar-fill" th:style="'width:' + (${stats.totalRooms > 0 ? (stats.occupiedRooms * 100 / stats.totalRooms) : 0}) + '%; background:linear-gradient(90deg,#dc2626,#ef4444);'"></div></div><div class="analytics-bar-val" th:text="${stats.occupiedRooms}">0</div></div>
+                        <div class="analytics-bar-row"><div class="analytics-bar-label">Maintenance</div><div class="analytics-bar-track"><div class="analytics-bar-fill" th:style="'width:' + (${stats.totalRooms > 0 ? (stats.maintenanceRooms * 100 / stats.totalRooms) : 0}) + '%; background:linear-gradient(90deg,#d97706,#f59e0b);'"></div></div><div class="analytics-bar-val" th:text="${stats.maintenanceRooms}">0</div></div>
+                        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.85rem;"><span style="color:var(--text-muted);">Overall Occupancy</span><strong th:text="${stats.occupancyRate} + '%'">0%</strong></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>💬 Guest Service Metrics</h3>
+                        <div class="analytics-bar-row"><div class="analytics-bar-label">Open Tickets</div><div class="analytics-bar-track"><div class="analytics-bar-fill" th:style="'width:' + (${stats.totalComplaints > 0 ? (stats.openComplaints * 100 / stats.totalComplaints) : 0}) + '%; background:linear-gradient(90deg,#dc2626,#ef4444);'"></div></div><div class="analytics-bar-val" th:text="${stats.openComplaints}">0</div></div>
+                        <div class="analytics-bar-row"><div class="analytics-bar-label">Resolved</div><div class="analytics-bar-track"><div class="analytics-bar-fill" th:style="'width:' + (${stats.totalComplaints > 0 ? (stats.resolvedComplaints * 100 / stats.totalComplaints) : 0}) + '%; background:linear-gradient(90deg,#16a34a,#22c55e);'"></div></div><div class="analytics-bar-val" th:text="${stats.resolvedComplaints}">0</div></div>
+                        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.85rem;"><span style="color:var(--text-muted);">Total Tickets</span><strong th:text="${stats.totalComplaints}">0</strong></div>
+                    </div>
+                </div>
+                <!-- Full Branch Report Table -->
+                <div class="chart-card" style="margin-bottom:1.5rem;">
+                    <h3>🏢 Branch-by-Branch Performance Report</h3>
+                    <div class="table-responsive">
+                        <table class="table" id="reportTable">
+                            <thead><tr><th>#</th><th>Branch Name</th><th>Bookings</th><th>Revenue ($)</th><th>Performance Tier</th><th>Share</th></tr></thead>
+                            <tbody>
+                                <tr th:each="bp, i : ${stats.branchPerformance}">
+                                    <td style="color:var(--text-muted);" th:text="${i.index + 1}">1</td>
+                                    <td><div style="display:flex;align-items:center;gap:0.6rem;"><div style="width:32px;height:32px;border-radius:var(--radius-md);background:linear-gradient(135deg,#1e3a8a,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">🏠</div><strong th:text="${bp.branch_name}">Branch</strong></div></td>
+                                    <td th:text="${bp.booking_count}">0</td>
+                                    <td><strong style="color:var(--success);" th:text="'$' + ${bp.revenue}">$0</strong></td>
+                                    <td><span th:class="${bp.booking_count > 5 ? 'badge badge-success' : (bp.booking_count > 2 ? 'badge badge-warning' : 'badge badge-danger')}" th:text="${bp.booking_count > 5 ? 'High Performing' : (bp.booking_count > 2 ? 'Moderate' : 'Needs Attention')}">Status</span></td>
+                                    <td><div class="analytics-bar-track" style="height:8px;width:90px;"><div class="analytics-bar-fill" th:style="'width:' + (${stats.totalReservations > 0 ? (bp.booking_count * 100 / stats.totalReservations) : 0}) + '%'"></div></div></td>
+                                </tr>
+                                <tr th:if="${stats.branchPerformance == null or stats.branchPerformance.empty}"><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No branch data available yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Status Analysis -->
+                <div class="chart-card">
+                    <h3>📋 Reservation Status Analysis</h3>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;text-align:center;">
+                        <div style="padding:1.5rem;background:#f0fdf4;border-radius:var(--radius-lg);border:1px solid #bbf7d0;"><div style="font-size:2.5rem;font-weight:800;color:#16a34a;" th:text="${stats.activeReservations}">0</div><div style="font-size:0.85rem;color:#15803d;font-weight:600;margin-top:0.3rem;">Active Bookings</div></div>
+                        <div style="padding:1.5rem;background:#fef2f2;border-radius:var(--radius-lg);border:1px solid #fecaca;"><div style="font-size:2.5rem;font-weight:800;color:#dc2626;" th:text="${stats.cancelledReservations}">0</div><div style="font-size:0.85rem;color:#b91c1c;font-weight:600;margin-top:0.3rem;">Cancellations</div></div>
+                        <div style="padding:1.5rem;background:#eff6ff;border-radius:var(--radius-lg);border:1px solid #bfdbfe;"><div style="font-size:2.5rem;font-weight:800;color:#1d4ed8;" th:text="${stats.totalReservations}">0</div><div style="font-size:0.85rem;color:#1e40af;font-weight:600;margin-top:0.3rem;">Total Reservations</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PROMOTIONS MANAGEMENT -->
+            <div id="tab-promotions" class="mgr-tab-content" th:classappend="${activeTab == 'promotions' ? ' active' : ''}">
+                <div class="page-header">
+                    <div>
+                        <span class="badge badge-warning" style="margin-bottom:0.4rem;">PROMOTIONS</span>
+                        <h1 class="page-title">Promotions Management</h1>
+                        <p class="page-subtitle">Create and manage hotel promotions. Active promotions appear on the booking page for all customers and staff.</p>
+                    </div>
+                </div>
+                <!-- Create Form -->
+                <div class="promo-form-card">
+                    <h3 style="font-family:var(--font-heading);color:#1e3a8a;margin-bottom:1.25rem;">➕ Create New Promotion Campaign</h3>
+                    <form th:action="@{/manager/promotions/create}" method="POST">
+                        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:1rem;align-items:end;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Promotion Name *</label>
+                                <input type="text" name="name" class="form-control" placeholder="e.g. Summer Early Bird Special" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Discount % *</label>
+                                <input type="number" name="discountPct" class="form-control" min="1" max="90" step="0.5" placeholder="e.g. 20" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Start Date *</label>
+                                <input type="date" name="startDate" id="promoStartDate" class="form-control" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">End Date *</label>
+                                <input type="date" name="endDate" id="promoEndDate" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="padding:0.72rem 1.25rem;white-space:nowrap;">🎁 Create</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Promotions List -->
+                <div th:if="${promotions != null and !promotions.empty}">
+                    <h3 style="font-family:var(--font-heading);color:var(--primary-dark);margin-bottom:1.25rem;">
+                        📋 All Promotions (<span th:text="${#lists.size(promotions)}">0</span>)
+                    </h3>
+                    <div th:each="promo : ${promotions}" class="promo-card">
+                        <div style="display:flex;align-items:center;gap:1rem;flex:1;">
+                            <div style="width:48px;height:48px;border-radius:var(--radius-md);background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🎁</div>
+                            <div>
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
+                                    <strong style="color:#92400e;font-size:1rem;" th:text="${promo.name}">Promo Name</strong>
+                                    <span class="promo-badge-pct" th:text="${promo.discountPct} + '% OFF'">20% OFF</span>
+                                    <span th:if="${promo.startDate != null}" th:text="${promo.startDate.toString() le #dates.format(new java.util.Date(), 'yyyy-MM-dd') and #dates.format(new java.util.Date(), 'yyyy-MM-dd') le promo.endDate.toString() ? 'ACTIVE' : (promo.startDate.toString() gt #dates.format(new java.util.Date(), 'yyyy-MM-dd') ? 'UPCOMING' : 'EXPIRED')}"
+                                          th:class="${promo.startDate.toString() le #dates.format(new java.util.Date(), 'yyyy-MM-dd') and #dates.format(new java.util.Date(), 'yyyy-MM-dd') le promo.endDate.toString() ? 'promo-status-active' : (promo.startDate.toString() gt #dates.format(new java.util.Date(), 'yyyy-MM-dd') ? 'promo-status-upcoming' : 'promo-status-expired')}">
+                                        STATUS
+                                    </span>
+                                </div>
+                                <div style="font-size:0.8rem;color:#78350f;">
+                                    📅 Valid: <span th:text="${promo.startDate}">2026-01-01</span> to <span th:text="${promo.endDate}">2026-12-31</span>
+                                </div>
+                            </div>
+                        </div>
+                        <form th:action="@{'/manager/promotions/delete/' + ${promo.promoId}}" method="POST"
+                              onsubmit="return confirm('Delete this promotion? This cannot be undone.');">
+                            <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- Empty State -->
+                <div th:if="${promotions == null or promotions.empty}"
+                     style="text-align:center;padding:4rem 2rem;color:var(--text-muted);background:#f8fafc;border-radius:var(--radius-xl);border:2px dashed var(--border);">
+                    <div style="font-size:3rem;margin-bottom:1rem;">🎁</div>
+                    <h3 style="color:var(--primary-dark);margin-bottom:0.5rem;">No Promotions Yet</h3>
+                    <p>Use the form above to create your first promotion campaign.<br>Active promotions will appear to guests during room booking.</p>
+                </div>
+            </div>
+
+        </div><!-- end main -->
+    </div><!-- end layout -->
+</main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<script>
+    function updateDateTime() {
+        const el = document.getElementById('liveDateTime');
+        if (el) el.textContent = new Date().toLocaleString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    }
+    updateDateTime(); setInterval(updateDateTime, 60000);
+
+    function switchTab(name) {
+        document.querySelectorAll('.mgr-tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.mgr-nav-item').forEach(a => a.classList.remove('active'));
+        const tab = document.getElementById('tab-' + name);
+        if (tab) tab.classList.add('active');
+        document.querySelectorAll('.mgr-nav-item').forEach(a => {
+            if (a.getAttribute('onclick') && a.getAttribute('onclick').includes("'" + name + "'")) a.classList.add('active');
+        });
+        history.replaceState(null, '', '#' + name);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Validation process: Enforce promotion start date cannot be before today
+        const today = new Date().toISOString().split('T')[0];
+        const sd = document.getElementById('promoStartDate');
+        const ed = document.getElementById('promoEndDate');
+        if (sd) { sd.min = today; sd.value = today; }
+        if (ed) {
+            // Validation process: Default end date to 1 month from today, and ensure minimum is today
+            const nm = new Date(); nm.setMonth(nm.getMonth() + 1);
+            ed.min = today; ed.value = nm.toISOString().split('T')[0];
+        }
+        // Validation process: Dynamically update end date minimum whenever start date changes
+        if (sd && ed) sd.addEventListener('change', () => { ed.min = sd.value; });
+        const hash = window.location.hash.replace('#','');
+        if (hash && document.getElementById('tab-' + hash)) switchTab(hash);
+    });
+
+    function exportCSV() {
+        const t = document.getElementById('reportTable');
+        if (!t) return;
+        let csv = [];
+        t.querySelectorAll('tr').forEach(r => {
+            let cols = [];
+            r.querySelectorAll('th,td').forEach(c => cols.push('"' + c.innerText.replace(/"/g,'""').replace(/\n/g,' ').trim() + '"'));
+            csv.push(cols.join(','));
+        });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv.join('\n')],{type:'text/csv'}));
+        a.download = 'SmartStay_Report.csv'; a.click();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="staffSidebar(activeTab)" class="card" style="padding: 1.25rem; height: fit-content;">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+        <div style="font-weight: 700; font-size: 1.1rem; color: var(--primary-dark);" th:text="${currentUser.name}">Staff Member</div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.35rem;">
+            <span class="badge badge-info" th:text="${currentUser.role}">ROLE</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" th:text="${currentUser.branchName != null ? currentUser.branchName : (currentUser.branchId != null and currentUser.branchId > 0 ? 'Branch ' + currentUser.branchId : 'All Branches')}"></span>
+        </div>
+    </div>
+
+    <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem;">
+        <li th:if="${!currentUser.isIt()}">
+            <a th:href="@{/dashboard}"
+               th:class="${activeTab == 'dashboard' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                📊 Dashboard Overview
+            </a>
+        </li>
+        <li th:if="${currentUser.isReservations() or currentUser.isFrontOffice()}">
+            <a th:href="@{/staff/reservations}"
+               th:class="${activeTab == 'reservations' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                🗓️ Reservations & Check-in
+            </a>
+        </li>
+        <li th:if="${currentUser.isFrontOffice() or currentUser.isReservations()}">
+            <a th:href="@{/staff/rooms}"
+               th:class="${activeTab == 'rooms' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                🛏️ Room Status & Readiness
+            </a>
+        </li>
+        <li th:if="${currentUser.isFinance() or currentUser.isReservations()}">
+            <a th:href="@{/staff/payments}"
+               th:class="${activeTab == 'payments' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                💳 Payments & Verification
+            </a>
+        </li>
+        <li th:if="${currentUser.isGuestRelations()}">
+            <a th:href="@{/staff/feedback}"
+               th:class="${activeTab == 'feedback' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                💬 Guest Complaints & Feedback
+            </a>
+        </li>
+        <li th:if="${currentUser.isFinance() or currentUser.isGuestRelations()}">
+            <a th:href="@{/staff/refunds}"
+               th:class="${activeTab == 'refunds' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                💵 Refund Requests
+            </a>
+        </li>
+
+        <!-- User Management (IT Coordinator & Manager) -->
+        <li th:if="${currentUser.isIt() or currentUser.isManager()}" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.5rem;padding-left:0.25rem;">User Management</div>
+        </li>
+        <li th:if="${currentUser.isIt() or currentUser.isManager()}">
+            <a th:href="@{/staff/it/users}"
+               th:class="${activeTab == 'staff_admin' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                👥 Staff Accounts
+            </a>
+        </li>
+        <li th:if="${currentUser.isIt() or currentUser.isManager()}">
+            <a th:href="@{/staff/it/guests}"
+               th:class="${activeTab == 'guest_admin' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                🛎️ Guest Accounts
+            </a>
+        </li>
+        <li th:if="${currentUser.isIt() or currentUser.isManager()}">
+            <a th:href="@{/staff/logs}"
+               th:class="${activeTab == 'logs' ? 'btn btn-primary btn-block btn-sm' : 'btn btn-outline btn-block btn-sm'}"
+               style="justify-content: flex-start;">
+                🔒 Activity Logs
+            </a>
+        </li>
+    </ul>
+
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+        <a th:href="@{/}" class="btn btn-secondary btn-block btn-sm">🌐 Public Portal</a>
+    </div>
+</aside>
+
+</body>
+</html>

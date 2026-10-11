@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Reservation Confirmed - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content" style="max-width: 800px;">
+    <div class="card" style="text-align: center; padding: 3rem 2rem; border-top: 5px solid var(--success);">
+        <div style="width: 72px; height: 72px; background: var(--success-bg); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.25rem; margin: 0 auto 1.5rem;">
+            ✓
+        </div>
+
+        <h1 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 2.2rem; margin-bottom: 0.5rem;">
+            Reservation Confirmed!
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2rem;">
+            Your booking reference is <strong style="color: var(--primary-dark);" th:text="'#' + ${reservation.reservationId}">#1001</strong>. A confirmation has been registered in the system.
+        </p>
+
+        <!-- Booking Details Card -->
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Guest Name</div>
+                    <strong style="font-size: 1rem;" th:text="${reservation.guestName}">Kamal Perera</strong>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Branch & Room</div>
+                    <strong style="font-size: 1rem;" th:text="${reservation.branchName} + ' (Room #' + ${reservation.roomNumber} + ')'">Colombo City</strong>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Check-in Date</div>
+                    <strong style="font-size: 1rem;" th:text="${reservation.checkInDate}">2026-10-01</strong>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Check-out Date</div>
+                    <strong style="font-size: 1rem;" th:text="${reservation.checkOutDate}">2026-10-04</strong>
+                </div>
+            </div>
+
+            <div th:if="${reservation.invoice != null}" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">Outstanding Balance:</span>
+                    <strong style="font-size: 1.15rem; margin-left: 0.5rem; color: var(--primary-dark);" th:text="'$' + ${reservation.invoice.outstandingBalance}">$106.00</strong>
+                </div>
+                <span th:if="${reservation.invoice.paidInFull}" class="badge badge-success">Paid in Full</span>
+                <span th:if="${!reservation.invoice.paidInFull}" class="badge badge-warning">Balance Due at Check-in</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a th:href="@{'/payments/invoice/' + ${reservation.reservationId}}" class="btn btn-outline">
+                📄 View Printable Invoice
+            </a>
+            <a th:if="${reservation.invoice != null and !reservation.invoice.paidInFull}"
+               th:href="@{'/payments/checkout/' + ${reservation.reservationId}}" class="btn btn-primary">
+                💳 Pay Outstanding Balance
+            </a>
+            <a th:href="@{/guest/reservations}" class="btn btn-secondary">
+                View My Bookings
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

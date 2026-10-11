@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Book Your Stay - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Reserve Your Stay</h1>
+            <p class="page-subtitle">Complete the details below to confirm your booking at SmartStay.</p>
+        </div>
+    </div>
+
+    <div id="clientValidationErrors" class="alert alert-error" style="display: none;"></div>
+
+    <div class="grid grid-cols-3" style="gap: 2rem; align-items: start;">
+        <!-- Left 2 Cols: Form -->
+        <div style="grid-column: span 2;" class="card">
+            <form id="reservationForm" th:action="@{/reservations/create}" method="POST" th:object="${reservationDto}">
+                <input type="hidden" th:field="*{roomId}">
+                <input type="hidden" id="selectedPromoId" th:field="*{promoId}">
+
+                <!-- Guest Details Section (If Staff is booking for guest) -->
+                <div th:if="${currentUser != null and currentUser.isStaff()}" style="background: #f8fafc; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px dashed var(--border);">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.75rem;">Guest Information (Staff Intake)</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Guest Full Name</label>
+                            <input type="text" th:field="*{guestName}" class="form-control" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Guest Email</label>
+                            <input type="email" th:field="*{guestEmail}" class="form-control" placeholder="guest@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Guest Phone</label>
+                        <input type="text" th:field="*{guestPhone}" class="form-control" placeholder="+94 77 123 4567">
+                    </div>
+                </div>
+
+                <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 1.25rem;">Stay Dates & Guests</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Check-in Date *</label>
+                        <input type="date" id="checkInDate" th:field="*{checkInDate}" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Check-out Date *</label>
+                        <input type="date" id="checkOutDate" th:field="*{checkOutDate}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Number of Guests *</label>
+                    <input type="number" min="1" max="10" th:field="*{numGuests}" class="form-control" required>
+                </div>
+
+                <!-- ===== ACTIVE PROMOTIONS ===== -->
+                <div th:if="${activePromotions != null and !activePromotions.empty}" style="margin-top: 2rem; margin-bottom: 0.5rem;">
+                    <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 1rem;">🎁 Available Promotions</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">These promotions are created by the General Manager. Select one to apply it to your booking.</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div th:each="promo : ${activePromotions}"
+                             th:id="'promo-card-' + ${promo.promoId}"
+                             style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: linear-gradient(135deg,#fef3c7,#fffbeb); border: 2px solid #f59e0b; border-radius: var(--radius-md); padding: 1rem 1.25rem; transition: all 0.2s;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <span>🎉</span>
+                                    <strong style="color: #92400e; font-size: 1rem;" th:text="${promo.name}">Promo Name</strong>
+                                    <span class="badge badge-warning" style="font-size: 0.75rem;" th:text="${promo.discountPct} + '% OFF'">20% OFF</span>
+                                </div>
+                                <div style="font-size: 0.8rem; color: #78350f;" th:text="'Valid: ' + ${promo.startDate} + ' → ' + ${promo.endDate}">Valid dates</div>
+                            </div>
+                            <button type="button"
+                                    th:attr="data-promo-id=${promo.promoId}, data-promo-name=${promo.name}, data-promo-pct=${promo.discountPct}"
+                                    th:id="'apply-promo-' + ${promo.promoId}"
+                                    onclick="applyPromo(this)"
+                                    class="btn btn-sm"
+                                    style="background: #f59e0b; color: #fff; border: none; white-space: nowrap; min-width: 90px;">
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Selected promo indicator -->
+                    <div id="selectedPromoDisplay" style="display:none; margin-top: 0.75rem; padding: 0.6rem 1rem; background: #dcfce7; border: 1.5px solid #16a34a; border-radius: var(--radius-md); font-size: 0.88rem; color: #15803d; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="selectedPromoText">✅ Promo applied</span>
+                        <button type="button" onclick="removePromo()" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1rem;">✕ Remove</button>
+                    </div>
+                </div>
+
+                <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-top: 2rem; margin-bottom: 1rem;">Special Requests & Preferences</h3>
+                <div class="form-group">
+                    <label class="form-label">Request Type</label>
+                    <select th:field="*{specialRequestType}" class="form-control">
+                        <option value="">None / Standard</option>
+                        <option value="BEDDING">Bedding Preference (Extra pillows, Twin / King)</option>
+                        <option value="CHECK_IN">Early Check-in / Late Arrival</option>
+                        <option value="DIETARY">Special Dietary / Meals</option>
+                        <option value="CORPORATE">Corporate Booking / Company Invoice</option>
+                        <option value="GROUP">Group Accommodation Coordination</option>
+                        <option value="OTHER">Other Custom Request</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description / Notes</label>
+                    <textarea th:field="*{specialRequestDescription}" class="form-control" rows="2" placeholder="Let us know any preferences or corporate billing notes..."></textarea>
+                </div>
+
+                <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-top: 2rem; margin-bottom: 1rem;">Payment & Deposit Option</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select id="paymentMethod" th:field="*{paymentMethod}" class="form-control">
+                            <option value="ONLINE">Online Payment (Simulated Instant)</option>
+                            <option value="CARD">Credit/Debit Card (Online/Simulated)</option>
+                            <option value="BANK_TRANSFER">Direct Bank Transfer</option>
+                            <option value="CASH" th:if="${currentUser != null and currentUser.isStaff()}">Cash Payment at Desk</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Initial Deposit ($)</label>
+                        <input type="number" step="0.01" min="0" id="depositAmount" th:field="*{depositAmount}" class="form-control" placeholder="Optional (or pay later)">
+                    </div>
+                </div>
+
+                <!-- Bank Transfer Note -->
+                <div id="bankTransferDetails" style="display: none; background: var(--info-bg); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; font-size: 0.9rem; border: 1px solid #bae6fd;">
+                    <strong>Bank Account Details for Direct Transfer:</strong>
+                    <div>Bank: Commercial Bank of Ceylon | Acc: 8001239847 | SmartStay Hotels Ltd.</div>
+                    <div style="margin-top: 0.5rem;">Please enter your bank transfer reference / slip number:</div>
+                    <input type="text" th:field="*{paymentReference}" class="form-control" style="margin-top: 0.35rem;" placeholder="e.g. REF-BANK-89421">
+                </div>
+
+                <!-- Simulated Payment Card Fields -->
+                <div id="cardDetailsSection" style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; border: 1px solid var(--border);">
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">🔒 Demo Simulated Payment (No real credit card charged)</div>
+                    <!-- Validation process: Card number input format -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
+                        <input type="text" class="form-control" placeholder="•••• •••• •••• ••••" maxlength="19">
+                        <input type="text" class="form-control" placeholder="MM/YY" maxlength="5">
+                        <input type="password" class="form-control" placeholder="CVC" maxlength="4">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="padding: 1rem; font-size: 1.05rem; margin-top: 1rem;">
+                    Confirm & Reserve Room &rarr;
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Col: Summary Card -->
+        <div class="card" id="bookingPricingSummary"
+             th:data-price="${room.discountedPrice}"
+             th:data-discount="${room.activeDiscountPct}"
+             style="position: sticky; top: 100px; border-top: 4px solid var(--primary);">
+
+            <div style="height: 160px; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 1.25rem;">
+                <img th:src="${room.primaryImageUrl}" alt="Room Thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+
+            <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 0.25rem;" th:text="${room.type}">Room Type</h3>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" th:text="'📍 ' + ${room.branchName} + ' • Room #' + ${room.roomNumber}">Branch</div>
+
+            <div style="padding-top: 1rem; border-top: 1px solid var(--border); margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted);">Rate per Night:</span>
+                    <strong th:text="'$' + ${room.discountedPrice}">$120.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted);">Duration:</span>
+                    <strong id="displayNights">1 Night</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted);">Subtotal:</span>
+                    <span id="displaySubtotal">$120.00</span>
+                </div>
+                <div th:if="${room.hasDiscount()}"
+                     style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #16a34a;">
+                    <span th:text="'Discount (' + ${room.activeDiscountPct} + '%):'">Discount:</span>
+                    <strong id="displayDiscount">-$0.00</strong>
+                </div>
+            </div>
+
+            <!-- Promo discount row in summary (shown when a promo is applied) -->
+            <div id="promoDiscountRow" style="display:none; flex; justify-content: space-between; margin-bottom: 0.5rem; color: #16a34a;">
+                <span id="promoDiscountLabel">Promo Discount:</span>
+                <strong id="promoDiscountAmount" style="color:#16a34a;">-$0.00</strong>
+            </div>
+
+            <div style="padding-top: 1rem; border-top: 2px solid var(--border); display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 1.1rem; font-weight: 700;">Total Estimate:</span>
+                <span id="displayGrandTotal" style="font-size: 1.8rem; font-weight: 800; color: var(--primary-dark);">$120.00</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 0.25rem;">Taxes and service fees included</div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<script th:src="@{/js/booking.js}"></script>
+<script>
+    // ===== PROMOTION APPLY / REMOVE LOGIC =====
+    let currentPromoPct = 0;
+
+    // Process validation: Apply selected promotional campaign discount
+    function applyPromo(btn) {
+        const promoId  = btn.getAttribute('data-promo-id');
+        const promoName = btn.getAttribute('data-promo-name');
+        const promoPct  = parseFloat(btn.getAttribute('data-promo-pct')) || 0;
+
+        // Reset previously highlighted cards
+        document.querySelectorAll('[id^="promo-card-"]').forEach(card => {
+            card.style.border = '2px solid #f59e0b';
+            card.style.background = 'linear-gradient(135deg,#fef3c7,#fffbeb)';
+        });
+        document.querySelectorAll('[id^="apply-promo-"]').forEach(b => {
+            b.textContent = 'Apply';
+            b.style.background = '#f59e0b';
+        });
+
+        // Highlight selected card
+        const card = document.getElementById('promo-card-' + promoId);
+        if (card) {
+            card.style.border = '2px solid #16a34a';
+            card.style.background = 'linear-gradient(135deg,#dcfce7,#f0fdf4)';
+        }
+        btn.textContent = '✓ Applied';
+        btn.style.background = '#16a34a';
+
+        // Set hidden field for form submission
+        document.getElementById('selectedPromoId').value = promoId;
+        currentPromoPct = promoPct;
+
+        // Show indicator to guest
+        const display = document.getElementById('selectedPromoDisplay');
+        display.style.display = 'flex';
+        document.getElementById('selectedPromoText').textContent =
+            '✅ "' + promoName + '" applied — ' + promoPct + '% off!';
+
+        // Recalculate pricing summary with promo discount applied
+        recalcWithPromo();
+    }
+
+    // Process validation: Remove applied promotional campaign and revert pricing
+    function removePromo() {
+        document.getElementById('selectedPromoId').value = '';
+        currentPromoPct = 0;
+
+        // Reset cards to default state
+        document.querySelectorAll('[id^="promo-card-"]').forEach(card => {
+            card.style.border = '2px solid #f59e0b';
+            card.style.background = 'linear-gradient(135deg,#fef3c7,#fffbeb)';
+        });
+        document.querySelectorAll('[id^="apply-promo-"]').forEach(b => {
+            b.textContent = 'Apply';
+            b.style.background = '#f59e0b';
+        });
+
+        const display = document.getElementById('selectedPromoDisplay');
+        if (display) display.style.display = 'none';
+
+        const promoRow = document.getElementById('promoDiscountRow');
+        if (promoRow) promoRow.style.display = 'none';
+
+        recalcWithPromo();
+    }
+
+    // Process validation: Re-calculate stay nights, subtotal, and promotional discount
+    function recalcWithPromo() {
+        const summaryCard = document.getElementById('bookingPricingSummary');
+        if (!summaryCard) return;
+
+        const pricePerNight = parseFloat(summaryCard.getAttribute('data-price')) || 0;
+        const checkIn  = document.getElementById('checkInDate')  ? document.getElementById('checkInDate').value  : '';
+        const checkOut = document.getElementById('checkOutDate') ? document.getElementById('checkOutDate').value : '';
+
+        // Process validation: Calculate night count and guarantee at least 1 night
+        let nights = 1;
+        if (checkIn && checkOut) {
+            const diff = (new Date(checkOut) - new Date(checkIn)) / 86400000;
+            if (diff > 0) nights = diff;
+        }
+
+        // Process validation: Compute subtotal and promo deduction
+        const subtotal = pricePerNight * nights;
+        const promoDiscount = currentPromoPct > 0 ? (subtotal * currentPromoPct / 100) : 0;
+        const grandTotal = subtotal - promoDiscount;
+
+        const subtotalEl = document.getElementById('displaySubtotal');
+        const totalEl    = document.getElementById('displayGrandTotal');
+        const promoRow   = document.getElementById('promoDiscountRow');
+        const promoAmt   = document.getElementById('promoDiscountAmount');
+        const promoLbl   = document.getElementById('promoDiscountLabel');
+
+        if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
+        if (totalEl)    totalEl.textContent    = '$' + grandTotal.toFixed(2);
+
+        // Process validation: Display promo discount row only when a valid discount exists
+        if (promoDiscount > 0 && promoRow) {
+            promoRow.style.display = 'flex';
+            if (promoAmt) promoAmt.textContent  = '-$' + promoDiscount.toFixed(2);
+            if (promoLbl) promoLbl.textContent  = 'Promo (' + currentPromoPct + '%):';
+        } else if (promoRow) {
+            promoRow.style.display = 'none';
+        }
+    }
+
+    // Process validation: Trigger price recalculation on check-in or check-out date changes
+    document.addEventListener('DOMContentLoaded', () => {
+        const ci = document.getElementById('checkInDate');
+        const co = document.getElementById('checkOutDate');
+        if (ci) ci.addEventListener('change', recalcWithPromo);
+        if (co) co.addEventListener('change', recalcWithPromo);
+    });
+</script>
+
+</body>
+</html>

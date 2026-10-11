@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="08718e94-ffba-419a-b05f-0d9322bfa4e9" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;IT25100447&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/IT25100447/Web-based-Hotel-Reservation-System.git&quot;,
+    &quot;accountId&quot;: &quot;c27b8b9b-b29e-4f2e-8104-8721742ab5bc&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="3JVVk0oVpDovjCHp2wpT4eYC1Q5" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.SmartStayApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/User/Desktop/Web Based Hotel Reservation Management System/Web-based-Hotel-Reservation-System&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="Web-based-Hotel-Reservation-System" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SmartStayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="smartstay-hotel-system" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.smartstay.SmartStayApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.31033.145" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="08718e94-ffba-419a-b05f-0d9322bfa4e9" name="Changes" comment="" />
+      <created>1789746363155</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1789746363155</updated>
+      <workItem from="1789746369675" duration="23000" />
+      <workItem from="1789746401457" duration="1824000" />
+      <workItem from="1789748879407" duration="1406000" />
+      <workItem from="1789751599343" duration="1246000" />
+      <workItem from="1789788179790" duration="69000" />
+      <workItem from="1789794628287" duration="1145000" />
+      <workItem from="1789801248972" duration="2461000" />
+      <workItem from="1789803761731" duration="442000" />
+      <workItem from="1789804241981" duration="662000" />
+      <workItem from="1789804921860" duration="463000" />
+      <workItem from="1789836384551" duration="8000" />
+      <workItem from="1789836404606" duration="363000" />
+      <workItem from="1789836775330" duration="599000" />
+      <workItem from="1789837387578" duration="38000" />
+      <workItem from="1789837473092" duration="297000" />
+      <workItem from="1789837812228" duration="8000" />
+      <workItem from="1789837849626" duration="35000" />
+      <workItem from="1789837922741" duration="2000" />
+      <workItem from="1789837942704" duration="652000" />
+      <workItem from="1789838899819" duration="842000" />
+      <workItem from="1789839851767" duration="583000" />
+      <workItem from="1789840443420" duration="570000" />
+      <workItem from="1789841029370" duration="79000" />
+      <workItem from="1789841133934" duration="1886000" />
+      <workItem from="1789844106485" duration="76000" />
+      <workItem from="1789874366497" duration="886000" />
+      <workItem from="1789875278540" duration="366000" />
+      <workItem from="1789877139806" duration="8017000" />
+      <workItem from="1790442124921" duration="2000" />
+      <workItem from="1790477828169" duration="1717000" />
+      <workItem from="1790490304072" duration="1174000" />
+      <workItem from="1791359335303" duration="647000" />
+      <workItem from="1791360543020" duration="611000" />
+      <workItem from="1791363121299" duration="961000" />
+      <workItem from="1791365605682" duration="606000" />
+      <workItem from="1791366252608" duration="231000" />
+      <workItem from="1791383390115" duration="7000" />
+      <workItem from="1791383399881" duration="2331000" />
+      <workItem from="1791540540512" duration="1031000" />
+      <workItem from="1791636857275" duration="802000" />
+      <workItem from="1791683576377" duration="480000" />
+      <workItem from="1791684082828" duration="1031000" />
+      <workItem from="1791686290390" duration="658000" />
+      <workItem from="1791686957208" duration="835000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

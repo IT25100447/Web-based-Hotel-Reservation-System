@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Premium Hotel Reservations in Sri Lanka')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main style="flex:1;">
+
+    <!-- ===== HERO SECTION ===== -->
+    <div style="max-width:1300px;margin:0 auto;padding:1.5rem 1.5rem 0;">
+        <section class="hero">
+            <div class="hero-bg"></div>
+            <div class="hero-content">
+                <div class="hero-eyebrow">✦ Sri Lanka's Premier Luxury Hotel Group</div>
+                <h1>Experience <em>Timeless</em><br>Elegance &amp; Comfort</h1>
+                <p>Indulge in world-class accommodations across our iconic hotel properties. From Colombo's vibrant city centre to serene coastal retreats — your perfect stay awaits.</p>
+                <div class="hero-actions">
+                    <a th:href="@{/rooms}" class="btn btn-primary btn-lg">Explore Rooms &rarr;</a>
+                    <a th:href="@{/register}" class="btn btn-outline-white btn-lg">Book Now</a>
+                </div>
+            </div>
+
+
+        </section>
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div style="max-width:1300px;margin:0 auto;padding:0 1.5rem;">
+        <div class="stats-bar">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-icon">🏨</span>
+                    <div class="stat-num">5</div>
+                    <div class="stat-desc">Luxury Branches</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🛏️</span>
+                    <div class="stat-num">200+</div>
+                    <div class="stat-desc">Premium Rooms &amp; Suites</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <div class="stat-num">15K+</div>
+                    <div class="stat-desc">Happy Guests</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🏆</span>
+                    <div class="stat-num">25</div>
+                    <div class="stat-desc">Years of Excellence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width:1300px;margin:0 auto;padding:0 1.5rem;">
+
+        <!-- ===== ACTIVE PROMOTIONS ===== -->
+        <section th:if="${promotions != null and !promotions.empty}" style="margin-bottom:3rem;">
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                <div th:each="promo : ${promotions}"
+                     style="flex:1;min-width:260px;background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1.5px solid var(--accent);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+                            <span>🎁</span>
+                            <span class="badge badge-warning">Limited Deal</span>
+                        </div>
+                        <h4 style="color:#92400e;font-size:1.1rem;font-weight:700;" th:text="${promo.name}">Summer Early Bird</h4>
+                        <p style="color:#78350f;font-size:0.88rem;margin-top:0.25rem;" th:text="'Save ' + ${promo.discountPct} + '% on select rooms — book today!'"></p>
+                    </div>
+                    <a th:href="@{/rooms}" class="btn btn-primary btn-sm" style="white-space:nowrap;">Claim Offer →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== FEATURED ROOMS ===== -->
+        <section style="margin-bottom:5rem;" class="reveal">
+            <div class="section-header">
+                <span class="section-eyebrow">✦ Curated Selection</span>
+                <h2>Featured Suites &amp; Rooms</h2>
+                <p>Impeccably appointed rooms designed for relaxation, romance, and business excellence.</p>
+            </div>
+
+            <div class="grid grid-cols-3">
+                <div th:each="room : ${featuredRooms}" class="room-card">
+                    <div class="room-thumb">
+                        <img th:src="${room.primaryImageUrl}" th:alt="${room.type}" onerror="this.src='/images/hotel_deluxe_room.jpg'">
+                        <div class="room-thumb-overlay"></div>
+                        <span th:class="'badge room-badge ' + (${room.status == 'AVAILABLE' ? 'badge-success' : (room.status == 'OCCUPIED' ? 'badge-danger' : 'badge-warning')})"
+                              th:text="${room.status}">AVAILABLE</span>
+                        <span th:if="${room.hasDiscount()}"
+                              class="room-promo-badge"
+                              th:text="${room.activeDiscountPct} + '% OFF'">15% OFF</span>
+                    </div>
+                    <div class="room-body">
+                        <h3 class="room-title" th:text="${room.type}">Deluxe Ocean View</h3>
+                        <div class="room-branch" th:text="'📍 ' + ${room.branchName} + ' · Room ' + ${room.roomNumber}">Colombo City</div>
+                        <div class="room-facilities">
+                            <span th:each="f, iterStat : ${room.facilities}" th:if="${iterStat.index < 3}" class="facility-tag" th:text="${f}">Wi-Fi</span>
+                        </div>
+                        <div class="room-footer">
+                            <div class="room-price">
+                                <div>
+                                    <span class="price-val" th:text="'$' + ${room.discountedPrice}">$120.00</span>
+                                    <span th:if="${room.hasDiscount()}"
+                                          class="price-strike" th:text="'$' + ${room.price}">$140.00</span>
+                                </div>
+                                <span class="price-sub">per night · taxes included</span>
+                            </div>
+                            <a th:href="@{/rooms/detail/{id}(id=${room.roomId})}" class="btn btn-primary btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback if no rooms loaded -->
+                <div th:if="${featuredRooms == null or featuredRooms.empty}" class="card" style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--text-muted);">
+                    <div style="font-size:3rem;margin-bottom:1rem;">🏨</div>
+                    <p>Room listings will appear here once connected to the database.</p>
+                    <a th:href="@{/rooms}" class="btn btn-outline" style="margin-top:1rem;">Browse Rooms</a>
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-top:2.5rem;">
+                <a th:href="@{/rooms}" class="btn btn-outline btn-lg">View All Rooms &amp; Suites &rarr;</a>
+            </div>
+        </section>
+
+        <!-- ===== EXPERIENCE SECTION ===== -->
+        <section class="experience-section reveal">
+            <div class="experience-grid">
+                <div class="experience-image">
+                    <img src="/images/hotel_pool.jpg" alt="SmartStay Pool" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="experience-content">
+                    <span class="section-eyebrow">✦ The SmartStay Experience</span>
+                    <h2>Where Luxury Meets Warm Sri Lankan Hospitality</h2>
+                    <p>Nestled across Sri Lanka's most coveted locations, SmartStay Hotels redefines premium hospitality with world-class facilities and genuine local warmth.</p>
+                    <ul class="amenity-list">
+                        <li>Infinity Pool &amp; Spa</li>
+                        <li>Fine Dining Restaurant</li>
+                        <li>24/7 Concierge Service</li>
+                        <li>Business Centre</li>
+                        <li>Airport Transfers</li>
+                        <li>Yoga &amp; Wellness</li>
+                        <li>Beach &amp; Water Sports</li>
+                        <li>Kids Club</li>
+                    </ul>
+                    <a th:href="@{/rooms}" class="btn btn-primary btn-lg">Discover Our Rooms &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== DINING SECTION ===== -->
+        <section style="margin-bottom:5rem;" class="reveal">
+            <div class="section-header">
+                <span class="section-eyebrow">✦ World-Class Dining</span>
+                <h2>Culinary Journeys Await</h2>
+                <p>From authentic Sri Lankan cuisine to international gourmet experiences — every meal is a celebration.</p>
+            </div>
+            <div style="border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-2xl);height:420px;position:relative;">
+                <img src="/images/hotel_restaurant.jpg" alt="SmartStay Fine Dining" style="width:100%;height:100%;object-fit:cover;">
+                <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(15,23,42,0.85) 40%,transparent 100%);display:flex;align-items:center;padding:4rem;">
+                    <div style="color:#fff;max-width:480px;">
+                        <span class="section-eyebrow" style="color:#fde68a;">Award-Winning Cuisine</span>
+                        <h3 style="font-family:var(--font-heading);font-size:2.25rem;margin:0.5rem 0 1rem;line-height:1.2;">The Grand Table</h3>
+                        <p style="color:#cbd5e1;line-height:1.75;margin-bottom:2rem;font-size:0.95rem;">Helmed by our Michelin-trained culinary team, our restaurant offers an extraordinary dining journey blending local ingredients with global techniques.</p>
+                        <div style="display:flex;gap:2rem;margin-bottom:2rem;">
+                            <div style="text-align:center;">
+                                <div style="font-size:1.75rem;font-weight:800;background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">3</div>
+                                <div style="font-size:0.8rem;color:#94a3b8;">Cuisines</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:1.75rem;font-weight:800;background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">5★</div>
+                                <div style="font-size:0.8rem;color:#94a3b8;">Rating</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:1.75rem;font-weight:800;background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">All Day</div>
+                                <div style="font-size:0.8rem;color:#94a3b8;">Open</div>
+                            </div>
+                        </div>
+                        <a th:href="@{/register}" class="btn btn-primary btn-lg">Reserve a Table</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== OUR BRANCHES ===== -->
+        <section style="margin-bottom:5rem;" class="reveal">
+            <div class="section-header">
+                <span class="section-eyebrow">✦ Our Locations</span>
+                <h2>Prime Locations Across Sri Lanka</h2>
+                <p>Choose from our prestigious properties, each strategically positioned at Sri Lanka's most sought-after destinations.</p>
+            </div>
+
+            <div class="grid grid-cols-3">
+                <div th:each="b : ${branches}" class="branch-card">
+                    <div class="branch-card-top" style="background:linear-gradient(135deg,#1e3a8a,#0f172a);">
+                        <span style="font-size:3.5rem;">🏨</span>
+                    </div>
+                    <div class="branch-card-body">
+                        <h3 th:text="${b.name}">SmartStay Colombo City</h3>
+                        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:0.6rem;" th:text="'📍 ' + ${b.address}">Colombo 03</p>
+                        <p style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:1.25rem;" th:text="'📞 ' + ${b.contactNumber}">+94 11 234 5678</p>
+                        <a th:href="@{'/rooms?branchId=' + ${b.branchId}}" class="btn btn-outline btn-block btn-sm">Explore Rooms →</a>
+                    </div>
+                </div>
+                <div th:if="${branches == null or branches.empty}" class="card" style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">
+                    <p>Branch listings will appear here once connected to the database.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== TESTIMONIALS ===== -->
+        <section class="testimonials-section reveal">
+            <div class="section-header">
+                <span class="section-eyebrow">✦ Guest Stories</span>
+                <h2>What Our Guests Say</h2>
+                <p>Real experiences from real guests who chose SmartStay for their most memorable stays.</p>
+            </div>
+            <div class="grid grid-cols-3">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"Absolutely breathtaking experience! The staff went above and beyond, the rooms were immaculate, and the view from our suite was simply unforgettable. SmartStay Colombo is in a league of its own."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">KS</div>
+                        <div>
+                            <div class="testimonial-name">Kamal Silva</div>
+                            <div class="testimonial-location">📍 Colombo, Sri Lanka</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"We celebrated our anniversary at SmartStay and it was pure magic. The penthouse suite, the candlelit dinner at The Grand Table — every detail was thoughtfully curated. We'll be back every year!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">AP</div>
+                        <div>
+                            <div class="testimonial-name">Arjun &amp; Priya</div>
+                            <div class="testimonial-location">📍 Singapore</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"As a frequent business traveller, SmartStay consistently delivers. The business centre, high-speed Wi-Fi, and executive floor amenities make it the best corporate hotel I've stayed at in South Asia."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">MR</div>
+                        <div>
+                            <div class="testimonial-name">Michael Roberts</div>
+                            <div class="testimonial-location">📍 London, UK</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== CTA SECTION ===== -->
+        <section class="cta-section reveal">
+            <span class="section-eyebrow" style="color:#fde68a;">✦ Ready to Experience Luxury?</span>
+            <h2>Begin Your SmartStay Journey Today</h2>
+            <p>Create your account in seconds and unlock exclusive member rates, priority bookings, and personalised services at all our properties.</p>
+            <div class="cta-actions">
+                <a th:href="@{/register}" class="btn btn-white btn-lg">Create Free Account →</a>
+                <a th:href="@{/rooms}" class="btn btn-outline-white btn-lg">Browse Rooms</a>
+            </div>
+            <div style="margin-top:2.5rem;display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap;position:relative;z-index:1;">
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;"><span>✓</span> No booking fees</div>
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;"><span>✓</span> Instant confirmation</div>
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;"><span>✓</span> Best rate guaranteed</div>
+                <div style="display:flex;align-items:center;gap:0.5rem;color:#94a3b8;font-size:0.88rem;"><span>✓</span> Free cancellation</div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    // Scroll reveal animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | SmartStay Hotel System'">SmartStay Hotel Reservation System</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<header th:fragment="navbar" class="navbar">
+    <div class="nav-container">
+        <a th:href="${currentUser != null and currentUser.isIt() and isStaffPortal != null and isStaffPortal} ? @{/staff/it/users} : (${currentUser != null and currentUser.isStaff() and isStaffPortal != null and isStaffPortal} ? @{/dashboard} : @{/})" class="logo">
+            <span style="color: #f59e0b;">✦</span> SmartStay <span class="logo-badge">HOTELS</span>
+        </a>
+
+        <ul class="nav-links">
+            <!-- Normal consumer tabs: only visible for visitors, guests, or staff when browsing the Global Site -->
+            <li th:if="${currentUser == null or !currentUser.isStaff() or (isStaffPortal == null or !isStaffPortal)}">
+                <a th:href="@{/}">Home</a>
+            </li>
+            <li th:if="${currentUser == null or !currentUser.isStaff() or (isStaffPortal == null or !isStaffPortal)}">
+                <a th:href="@{/rooms}">Rooms & Suites</a>
+            </li>
+
+            <!-- Return link to Dashboard when staff members browse the Global Site -->
+            <li th:if="${currentUser != null and currentUser.isStaff() and (isStaffPortal == null or !isStaffPortal)}">
+                <a th:href="${currentUser.isIt()} ? @{/staff/it/users} : @{/dashboard}" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; padding: 0.35rem 0.75rem; border-radius: 4px; font-weight: 600;">
+                    <span th:text="${currentUser.isIt()} ? '🛠️ IT Dashboard' : '🛠️ Staff Dashboard'">🛠️ Staff Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Guest Specific Links -->
+            <li th:if="${currentUser != null and currentUser.isGuest()}">
+                <a th:href="@{/guest/reservations}">My Bookings</a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.isGuest()}">
+                <a th:href="@{/payments/history}">Payments</a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.isGuest()}">
+                <a th:href="@{/guest/feedback}">Support & Feedback</a>
+            </li>
+
+            <!-- Staff Portal Navigation (when isStaffPortal == true) -->
+            <!-- 1. Manager & Operational Staff Tabs -->
+            <li th:if="${currentUser != null and currentUser.isStaff() and !currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/dashboard}">Staff Dashboard</a>
+            </li>
+            <li th:if="${currentUser != null and (currentUser.isReservations() or currentUser.isFrontOffice()) and !currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/reservations}">Bookings</a>
+            </li>
+            <li th:if="${currentUser != null and (currentUser.isFrontOffice() or currentUser.isReservations()) and !currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/rooms}">Rooms</a>
+            </li>
+            <li th:if="${currentUser != null and (currentUser.isFinance() or currentUser.role == 'RESERVATIONS' or currentUser.isManager()) and !currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/payments}">Billing</a>
+            </li>
+            <li th:if="${currentUser != null and (currentUser.isGuestRelations() or currentUser.isManager()) and !currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/feedback}">Complaints</a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.isManager() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/it/users}">Staff Admin</a>
+            </li>
+
+            <!-- 2. IT Coordinator Tabs (only visible when IT is in staff portal) -->
+            <li th:if="${currentUser != null and currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/it/users}">Staff Accounts</a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/it/guests}">Guest Accounts</a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.isIt() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/staff/logs}">Activity Logs</a>
+            </li>
+
+            <!-- Global Site Link for all staff when inside the portal -->
+            <li th:if="${currentUser != null and currentUser.isStaff() and (isStaffPortal != null and isStaffPortal)}">
+                <a th:href="@{/}" class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.25); padding: 0.35rem 0.75rem; border-radius: 4px;">
+                    🌐 Global Site
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-user">
+            <!-- If Logged Out -->
+            <div th:if="${currentUser == null}" style="display: flex; gap: 0.75rem;">
+                <a th:href="@{/login}" class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.25);">Log In</a>
+                <a th:href="@{/register}" class="btn btn-primary">Book Now</a>
+            </div>
+
+            <!-- If Logged In -->
+            <div th:if="${currentUser != null}" style="display: flex; align-items: center; gap: 1rem;">
+                <span class="user-badge" th:text="${currentUser.role}">ROLE</span>
+                <a th:href="@{/profile}" style="color: #e2e8f0; font-weight: 600; font-size: 0.9rem;" th:text="${currentUser.name}">User</a>
+                <a th:href="@{/logout}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.15); color: #fff;">Log Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Flash Alerts Fragment -->
+<div th:fragment="alerts" style="max-width: 1300px; margin: 1rem auto 0; padding: 0 1.5rem;">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+    <div th:if="${infoMessage}" class="alert alert-info" th:text="${infoMessage}"></div>
+</div>
+
+</body>
+</html>

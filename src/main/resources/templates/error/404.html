@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Page Not Found - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+
+<main class="main-content" style="max-width: 600px; text-align: center; padding: 4rem 1.5rem;">
+    <div class="card" style="padding: 3rem 2rem; border-top: 4px solid var(--accent);">
+        <div style="font-size: 4rem; color: var(--accent); margin-bottom: 1rem; font-weight: 800;">404</div>
+        <h1 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 1.75rem; margin-bottom: 0.75rem;">Page or Resource Not Found</h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;" th:text="${errorMessage != null ? errorMessage : 'The link you followed may be broken, or the page may have been moved or removed.'}">
+            The requested page could not be located.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a th:href="@{/}" class="btn btn-primary">Return to Home</a>
+            <a th:href="@{/rooms}" class="btn btn-outline">Explore Rooms</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

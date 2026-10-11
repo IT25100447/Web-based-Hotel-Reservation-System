@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Submit Feedback & Support - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content" style="max-width: 700px;">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Guest Feedback & Support</h1>
+            <p class="page-subtitle">We value your experience. Share your rating, feedback, or submit a service complaint.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <form th:action="@{/feedback/create}" method="POST">
+            <input type="hidden" name="reservationId" th:value="${reservation.reservationId}">
+
+            <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                <div><strong>Booking Reference:</strong> #<span th:text="${reservation.reservationId}">1</span></div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;"
+                     th:text="${reservation.roomType} + ' at ' + ${reservation.branchName} + ' (' + ${reservation.checkInDate} + ' to ' + ${reservation.checkOutDate} + ')'">
+                    Deluxe Suite
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Rating (1 to 5 Stars) *</label>
+                <select name="rating" class="form-control" required>
+                    <option value="5">★★★★★ - Excellent (5 Stars)</option>
+                    <option value="4">★★★★☆ - Very Good (4 Stars)</option>
+                    <option value="3">★★★☆☆ - Average / Satisfactory (3 Stars)</option>
+                    <option value="2">★★☆☆☆ - Below Expectations (2 Stars)</option>
+                    <option value="1">★☆☆☆☆ - Poor / Complaint (1 Star)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select name="category" class="form-control" required>
+                    <option value="SERVICE">Staff Service & Hospitality</option>
+                    <option value="CLEANLINESS">Room Cleanliness & Housekeeping</option>
+                    <option value="AMENITIES">Amenities & Facilities (Wi-Fi, AC, Pool)</option>
+                    <option value="BILLING">Billing, Payments or Refund Inquiry</option>
+                    <option value="CANCELLATION">Reservation Cancellation</option>
+                    <option value="OTHER">Other Inquiry / Feedback</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Comments & Details *</label>
+                <textarea name="comments" rows="4" class="form-control" placeholder="Please describe your experience or any issues you encountered..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 0.9rem; font-size: 1rem;">
+                Submit Feedback / Complaint &rarr;
+            </button>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

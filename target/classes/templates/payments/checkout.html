@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Payment Checkout - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content" style="max-width: 900px;">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Secure Payment & Billing</h1>
+            <p class="page-subtitle">Settle outstanding balances or make deposits for your stay.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-3" style="gap: 2rem; align-items: start;">
+        <!-- Left: Form -->
+        <div style="grid-column: span 2;" class="card">
+            <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 1.25rem;">Payment Information</h3>
+
+            <form th:action="@{/payments/process}" method="POST" th:object="${paymentDto}">
+                <input type="hidden" th:field="*{reservationId}">
+
+                <div class="form-group">
+                    <label class="form-label">Payment Amount ($) *</label>
+                    <input type="number" step="0.01" min="0.01" th:field="*{amount}" class="form-control"
+                           th:max="${invoice.outstandingBalance}" required>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        Current outstanding balance: <strong th:text="'$' + ${invoice.outstandingBalance}">$106.00</strong>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Method *</label>
+                    <select id="paymentMethod" th:field="*{method}" class="form-control">
+                        <option value="CARD">Credit / Debit Card (Simulated Approval)</option>
+                        <option value="ONLINE">Online Portal / E-Wallet</option>
+                        <option value="BANK_TRANSFER">Direct Bank Transfer (Manual Slip Verification)</option>
+                        <option value="CASH" th:if="${currentUser != null and currentUser.isStaff()}">Cash at Reception</option>
+                    </select>
+                </div>
+
+                <!-- Bank Transfer Note -->
+                <div id="bankTransferDetails" style="display: none; background: var(--info-bg); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; border: 1px solid #bae6fd;">
+                    <strong>Bank Deposit Information:</strong>
+                    <div style="font-size: 0.9rem; margin-top: 0.25rem;">Bank: Commercial Bank of Ceylon | Account: 8001239847 | SmartStay Hotels Ltd.</div>
+                    <div style="margin-top: 0.75rem;">
+                        <label class="form-label">Bank Transaction / Reference Slip #</label>
+                        <input type="text" th:field="*{referenceNumber}" class="form-control" placeholder="e.g. SLIP-984210">
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        * Note: Bank transfers are recorded as PENDING until verified by the Reservations Officer or Finance Admin.
+                    </p>
+                </div>
+
+                <!-- Card Details (Simulation) -->
+                <div id="cardDetailsSection" style="background: #f8fafc; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; border: 1px solid var(--border);">
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                        🔒 <strong>Simulated Payment Gateway:</strong> For demonstration purposes, simulated payment processing is supported.
+                    </div>
+                    <!-- Validation process: Check credit card number format -->
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-control" placeholder="•••• •••• •••• ••••" maxlength="19">
+                    </div>
+                    <!-- Validation process: Validate card expiry and CVV inputs -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" class="form-control" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">CVC / CVV</label>
+                            <input type="password" class="form-control" placeholder="CVC" maxlength="4">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="padding: 0.9rem; font-size: 1rem;">
+                    Submit Payment Now &rarr;
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Summary -->
+        <div class="card" style="border-top: 4px solid var(--accent);">
+            <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 1rem;">Invoice Balance</h3>
+
+            <div style="margin-bottom: 1.25rem;">
+                <div style="font-size: 0.85rem; color: var(--text-muted);">Reservation:</div>
+                <strong th:text="'#' + ${reservation.reservationId}">#1</strong>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;" th:text="${reservation.roomType} + ' - ' + ${reservation.branchName}">Suite</div>
+            </div>
+
+            <div style="padding-top: 1rem; border-top: 1px solid var(--border); margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted);">Total Invoiced:</span>
+                    <strong th:text="'$' + ${invoice.totalAmount}">$306.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <span style="color: var(--text-muted);">Remaining Due:</span>
+                    <strong style="font-size: 1.4rem; color: var(--danger);" th:text="'$' + ${invoice.outstandingBalance}">$106.00</strong>
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+                <div>✔ Official e-invoice generated immediately</div>
+                <div>✔ Instant balance adjustment upon verification</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<script th:src="@{/js/booking.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="footer">
+    <div class="footer-container">
+        <div class="footer-col">
+            <div class="logo" style="margin-bottom:1rem;font-size:1.5rem;">
+                <span style="color:#f59e0b;">✦</span> SmartStay
+                <span class="logo-badge">HOTELS</span>
+            </div>
+            <p style="font-size:0.88rem;line-height:1.7;color:#64748b;margin-bottom:1.25rem;max-width:280px;">
+                Sri Lanka's premier luxury hotel group — delivering world-class hospitality across iconic properties since 1999.
+            </p>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <span class="badge" style="background:rgba(255,255,255,0.06);color:#cbd5e1;border:1px solid rgba(255,255,255,0.1);">⭐ 5-Star Rated</span>
+                <span class="badge" style="background:rgba(255,255,255,0.06);color:#cbd5e1;border:1px solid rgba(255,255,255,0.1);">🏆 25+ Years</span>
+            </div>
+            <div style="margin-top:1.25rem;display:flex;gap:0.75rem;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Facebook">📘</div>
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;" title="Instagram">📸</div>
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;" title="Twitter">🐦</div>
+            </div>
+        </div>
+
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a th:href="@{/}">🏠 Home</a></li>
+                <li><a th:href="@{/rooms}">🛏️ Search Rooms</a></li>
+                <li><a th:href="@{/register}">✨ Book Now</a></li>
+                <li><a th:href="@{/login}">🔑 Guest / Staff Login</a></li>
+                <li><a th:href="@{/reset-password}">🔒 Reset Password</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Our Branches</h4>
+            <ul>
+                <li><a href="#">🌆 Colombo City — +94 11 234 5678</a></li>
+                <li><a href="#">⛰️ Kandy Hilltop — +94 81 223 3445</a></li>
+                <li><a href="#">🌊 Galle Beach — +94 91 224 8899</a></li>
+                <li><a href="#">🌴 Negombo Resort — +94 31 228 4411</a></li>
+                <li><a href="#">🏔️ Nuwara Eliya — +94 52 222 7799</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Contact &amp; Support</h4>
+            <div class="footer-contact-item">
+                <span>📞</span>
+                <div>Reservations Hotline<br><strong style="color:#e2e8f0;">+94 11 800 9090</strong></div>
+            </div>
+            <div class="footer-contact-item">
+                <span>📧</span>
+                <div>Email Support<br><strong style="color:#e2e8f0;">reservations@smartstay.lk</strong></div>
+            </div>
+            <div class="footer-contact-item">
+                <span>🕐</span>
+                <div>Available 24/7<br><strong style="color:#e2e8f0;">Round the clock service</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div>&copy; 2026 SmartStay Hotels &amp; Resorts. All Rights Reserved.</div>
+        <div style="display:flex;align-items:center;gap:1rem;">
+            <span class="footer-stars">★★★★★</span>
+            <span>Verified Luxury &amp; Hospitality</span>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/validation.js}"></script>
+
+</body>
+</html>

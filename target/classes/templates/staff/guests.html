@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Guest Accounts - User Control Panel')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start;">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.1rem;" th:text="${currentUser != null ? currentUser.name.substring(0,1) : 'A'}">A</div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.95rem;" th:text="${currentUser != null ? currentUser.name : 'Admin'}">Admin</div>
+                        <div style="font-size:0.78rem;color:#94a3b8;" th:text="${currentUser != null ? currentUser.role : 'IT'}">IT</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="sidebar-section-label" th:if="${currentUser.isManager()}">Overview</div>
+                <a th:if="${currentUser.isManager()}" th:href="@{/dashboard}">📊 Dashboard</a>
+
+                <div class="sidebar-section-label" th:if="${currentUser.isManager()}">Operations</div>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/reservations}">📋 Reservations</a>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/rooms}">🏨 Rooms</a>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/payments}">💳 Billing</a>
+                <a th:if="${currentUser.isManager()}" th:href="@{/staff/feedback}">💬 Complaints</a>
+
+                <div class="sidebar-section-label">User Management</div>
+                <a th:href="@{/staff/it/users}">👥 Staff Accounts</a>
+                <a th:href="@{/staff/it/guests}" class="active">🛎️ Guest Accounts</a>
+                <a th:href="@{/staff/logs}">🔒 Activity Logs</a>
+
+                <div style="margin-top:1.5rem;padding:0.75rem;">
+                    <a th:href="@{/logout}" class="btn btn-danger btn-block btn-sm">Sign Out</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div>
+            <div class="page-header">
+                <div>
+                    <span class="badge badge-success" style="margin-bottom:0.4rem;">GUEST REGISTRY</span>
+                    <h1 class="page-title">Registered Guest Accounts</h1>
+                    <p class="page-subtitle">View and manage all guest profiles registered in the SmartStay system.</p>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="grid grid-cols-3" style="margin-bottom:2rem;">
+                <div class="stat-card" style="border-top:3px solid var(--success);">
+                    <div>
+                        <div class="stat-val" th:text="${guests != null ? guests.size() : 0}">0</div>
+                        <div class="stat-label">Total Guests</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#ecfdf5;">🛎️</div>
+                </div>
+                <div class="stat-card" style="border-top:3px solid var(--primary);">
+                    <div>
+                        <div class="stat-val">—</div>
+                        <div class="stat-label">With Reservations</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#eff6ff;">📋</div>
+                </div>
+                <div class="stat-card" style="border-top:3px solid var(--accent);">
+                    <div>
+                        <div class="stat-val">—</div>
+                        <div class="stat-label">Current Guests</div>
+                    </div>
+                    <div class="stat-icon-box" style="background:#fef3c7;">🏠</div>
+                </div>
+            </div>
+
+            <!-- Guest Table -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <h3 style="font-family:var(--font-heading);color:var(--primary-dark);font-size:1.1rem;">All Registered Guests</h3>
+                    <input type="text" id="guestSearch" placeholder="🔍 Search by name or email..." class="form-control" style="width:280px;padding:0.5rem 0.85rem;font-size:0.88rem;" oninput="filterGuests()">
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="guestTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Guest</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="g, iter : ${guests}" class="guest-row" th:attr="data-name=${g.name},data-email=${g.email}">
+                                <td style="color:var(--text-muted);font-size:0.82rem;" th:text="${iter.index + 1}">1</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                                        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--success),#34d399);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;flex-shrink:0;" th:text="${g.name.substring(0,1)}">G</div>
+                                        <div>
+                                            <div style="font-weight:700;font-size:0.9rem;" th:text="${g.name}">Guest Name</div>
+                                            <div style="font-size:0.78rem;color:var(--text-muted);">Guest Account</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="font-size:0.88rem;" th:text="${g.email}">email@example.com</td>
+                                <td style="font-size:0.88rem;" th:text="${g.phone != null and g.phone != '' ? g.phone : '—'}">—</td>
+                                <td style="font-size:0.85rem;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" th:text="${g.address != null and g.address != '' ? g.address : '—'}">—</td>
+                                <td>
+                                    <div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+                                        <form th:action="@{'/staff/it/guests/delete/' + ${g.guestId}}" method="POST" style="display:inline;"
+                                              onsubmit="return confirm('Permanently delete this guest account? All their bookings and data will be removed.')">
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <tr th:if="${guests == null or guests.empty}">
+                                <td colspan="6" style="text-align:center;padding:4rem;color:var(--text-muted);">
+                                    <div style="font-size:3rem;margin-bottom:0.75rem;">🛎️</div>
+                                    <p style="margin-bottom:0.5rem;">No guest accounts found.</p>
+                                    <p style="font-size:0.85rem;">Guests will appear here once they register on the portal.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    function filterGuests() {
+        const q = document.getElementById('guestSearch').value.toLowerCase();
+        document.querySelectorAll('.guest-row').forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const email = (row.getAttribute('data-email') || '').toLowerCase();
+            row.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
+        });
+    }
+</script>
+</body>
+</html>

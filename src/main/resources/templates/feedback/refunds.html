@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Refunds Queue - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div style="display: grid; grid-template-columns: 260px 1fr; gap: 2rem; align-items: start;">
+        <div th:replace="~{fragments/sidebar :: staffSidebar('refunds')}"></div>
+
+        <div>
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Refund Authorizations</h1>
+                    <p class="page-subtitle">Review, approve, and track guest refund claims submitted through cancellation or guest relations tickets.</p>
+                </div>
+            </div>
+
+            <div th:if="${refunds.empty}" class="card" style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💵</div>
+                <h3 style="font-family: var(--font-heading); color: var(--primary-dark); margin-bottom: 0.5rem;">No Refund Claims</h3>
+                <p style="color: var(--text-muted);">There are currently no refund tickets in the database.</p>
+            </div>
+
+            <div th:if="${!refunds.empty}" class="card" style="padding: 0; overflow: hidden;">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Refund #</th>
+                                <th>Ticket #</th>
+                                <th>Guest</th>
+                                <th>Amount</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Decision Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ref : ${refunds}">
+                                <td><strong th:text="'#' + ${ref.refundId}">#1</strong></td>
+                                <td><a th:href="@{/staff/feedback}" th:text="'Ticket #' + ${ref.feedbackId}">Ticket #1</a></td>
+                                <td th:text="${ref.guestName}">Kamal Perera</td>
+                                <td><strong th:text="'$' + ${ref.amount}">$150.00</strong></td>
+                                <td style="max-width: 250px; font-size: 0.85rem;" th:text="${ref.reason}">Reason</td>
+                                <td>
+                                    <span th:class="'badge ' + (${ref.status == 'COMPLETED' or ref.status == 'APPROVED' ? 'badge-success' : (ref.status == 'REJECTED' ? 'badge-danger' : 'badge-warning')})"
+                                          th:text="${ref.status}">PENDING</span>
+                                </td>
+                                <td>
+                                    <form th:if="${ref.status == 'PENDING'}" th:action="@{/staff/refunds/decision}" method="POST" style="display: inline-flex; gap: 0.35rem;">
+                                        <input type="hidden" name="refundId" th:value="${ref.refundId}">
+                                        <button type="submit" name="decision" value="APPROVED" class="btn btn-success btn-sm">Approve</button>
+                                        <button type="submit" name="decision" value="REJECTED" class="btn btn-danger btn-sm">Reject</button>
+                                    </form>
+                                    <form th:if="${ref.status == 'APPROVED'}" th:action="@{/staff/refunds/decision}" method="POST" style="display: inline;">
+                                        <input type="hidden" name="refundId" th:value="${ref.refundId}">
+                                        <button type="submit" name="decision" value="COMPLETED" class="btn btn-dark btn-sm">Mark Completed</button>
+                                    </form>
+                                    <span th:if="${ref.status == 'COMPLETED' or ref.status == 'REJECTED'}" style="font-size: 0.8rem; color: var(--text-muted);">Settled</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

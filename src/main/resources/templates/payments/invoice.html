@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Invoice #' + ${invoice.invoiceId} + ' - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content" style="max-width: 850px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;" class="no-print">
+        <a th:href="@{'/reservations/details/' + ${invoice.reservationId}}" style="font-weight: 600; color: var(--text-muted);">&larr; Back to Booking</a>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Invoice</button>
+    </div>
+
+    <!-- Printable Invoice Card -->
+    <div class="card" style="padding: 3rem 2.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
+        <!-- Invoice Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem;">
+            <div>
+                <div class="logo" style="color: var(--primary-dark); font-size: 1.8rem; margin-bottom: 0.5rem;">
+                    <span style="color: var(--accent);">✦</span> SmartStay Hotels
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">
+                    <div th:text="${invoice.branchName}">SmartStay Colombo City</div>
+                    <div>Sri Lanka Hospitality Management</div>
+                    <div>VAT / Reg ID: SS-LK-2026-9090</div>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <h2 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 1.8rem;">INVOICE</h2>
+                <div style="font-weight: 700; color: var(--primary-dark); font-size: 1rem; margin-top: 0.25rem;" th:text="'INV-' + ${invoice.invoiceId}">INV-1</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    Issue Date: <span th:text="${#temporals.format(invoice.issueDate, 'dd MMM yyyy')}">15 Sep 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill To & Booking Info -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem;">
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.4rem;">Billed To</div>
+                <strong style="font-size: 1.1rem; color: var(--primary-dark);" th:text="${invoice.guestName}">Kamal Perera</strong>
+                <div style="font-size: 0.85rem; color: var(--text-muted);" th:text="${invoice.guestEmail}">guest@example.com</div>
+            </div>
+
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.4rem;">Reservation Details</div>
+                <div><strong>Booking Reference:</strong> #<span th:text="${invoice.reservationId}">1</span></div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    <strong>Room:</strong> <span th:text="${invoice.roomType} + ' (#' + ${invoice.roomNumber} + ')'">Suite</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    <strong>Dates:</strong> <span th:text="${invoice.checkInDate} + ' to ' + ${invoice.checkOutDate}">Dates</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <table class="table" style="margin-bottom: 2rem;">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="text-align: center;">Stay Duration</th>
+                    <th style="text-align: right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong th:text="${invoice.roomType} + ' - ' + ${invoice.branchName}">Deluxe Ocean View</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Accommodation & Amenities charge</div>
+                    </td>
+                    <td style="text-align: center;" th:text="${reservation.numberOfNights} + ' Night(s)'">3 Nights</td>
+                    <td style="text-align: right;"><strong th:text="'$' + ${invoice.totalAmount}">$306.00</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totals & Balances -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 2rem;">
+            <div style="width: 300px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted);">Total Invoiced:</span>
+                    <strong th:text="'$' + ${invoice.totalAmount}">$306.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid var(--border); align-items: baseline;">
+                    <span style="font-weight: 700;">Outstanding Balance:</span>
+                    <strong style="font-size: 1.35rem; color: var(--primary-dark);" th:text="'$' + ${invoice.outstandingBalance}">$106.00</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Logged -->
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">Payment History</h4>
+            <div th:if="${payments.empty}" style="font-size: 0.85rem; color: var(--text-muted);">No payments recorded against this invoice yet.</div>
+
+            <table th:if="${!payments.empty}" class="table" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Reference #</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${payments}">
+                        <td th:text="${#temporals.format(p.paymentDate, 'dd MMM yyyy HH:mm')}">Date</td>
+                        <td th:text="${p.method}">CARD</td>
+                        <td th:text="${p.referenceNumber}">TXN-1234</td>
+                        <td>
+                            <span th:class="'badge ' + (${p.status == 'VERIFIED' ? 'badge-success' : 'badge-warning'})" th:text="${p.status}">VERIFIED</span>
+                        </td>
+                        <td style="text-align: right;"><strong th:text="'$' + ${p.amount}">$200.00</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 2.5rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 1.5rem;">
+            Thank you for choosing SmartStay Hotels! For billing inquiries, contact finance@smartstay.com.
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Guest Dashboard - SmartStay')}"></head>
+<body>
+
+<header th:replace="~{fragments/header :: navbar}"></header>
+<div th:replace="~{fragments/header :: alerts}"></div>
+
+<main class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title" th:text="'Welcome, ' + ${currentUser.name} + '!'">Welcome, Kamal!</h1>
+            <p class="page-subtitle">Here is your SmartStay guest dashboard and upcoming itinerary.</p>
+        </div>
+        <a th:href="@{/rooms}" class="btn btn-primary">+ Book a New Room</a>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-4" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+            <div>
+                <div class="stat-val" th:text="${#lists.size(reservations)}">2</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div style="font-size: 2rem;">🗓️</div>
+        </div>
+
+        <div class="stat-card">
+            <div>
+                <div class="stat-val" th:text="${#lists.size(payments)}">1</div>
+                <div class="stat-label">Payment Receipts</div>
+            </div>
+            <div style="font-size: 2rem;">💳</div>
+        </div>
+
+        <div class="stat-card">
+            <div>
+                <div class="stat-val" th:text="${#lists.size(feedbacks)}">1</div>
+                <div class="stat-label">Feedback / Tickets</div>
+            </div>
+            <div style="font-size: 2rem;">💬</div>
+        </div>
+
+        <div class="stat-card" style="border-left: 4px solid var(--accent);">
+            <div>
+                <div class="stat-val" style="color: var(--accent);">GOLD</div>
+                <div class="stat-label">Guest Tier</div>
+            </div>
+            <div style="font-size: 2rem;">👑</div>
+        </div>
+    </div>
+
+    <!-- Active Reservations Table -->
+    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-family: var(--font-heading); color: var(--primary-dark); font-size: 1.25rem;">Your Bookings & Stays</h3>
+            <a th:href="@{/guest/reservations}" class="btn btn-outline btn-sm">View Full History</a>
+        </div>
+
+        <div th:if="${reservations.empty}" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+            No reservations found. <a th:href="@{/rooms}">Click here to search and reserve rooms.</a>
+        </div>
+
+        <div th:if="${!reservations.empty}" class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Booking #</th>
+                        <th>Room & Branch</th>
+                        <th>Stay Dates</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r, iterStat : ${reservations}" th:if="${iterStat.index < 5}">
+                        <td><strong th:text="'#' + ${r.reservationId}">#1</strong></td>
+                        <td>
+                            <strong th:text="${r.roomType}">Deluxe Ocean View</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${r.branchName} + ' (Room #' + ${r.roomNumber} + ')'">Colombo</div>
+                        </td>
+                        <td>
+                            <span th:text="${r.checkInDate} + ' to ' + ${r.checkOutDate}">Dates</span>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${r.numberOfNights} + ' Night(s)'">Nights</div>
+                        </td>
+                        <td>
+                            <span th:class="'badge ' + (${r.status == 'CONFIRMED' or r.status == 'CHECKED_IN' ? 'badge-success' : (r.status == 'CANCELLED' ? 'badge-danger' : 'badge-warning')})"
+                                  th:text="${r.status}">CONFIRMED</span>
+                        </td>
+                        <td>
+                            <a th:href="@{'/reservations/details/' + ${r.reservationId}}" class="btn btn-outline btn-sm">View Details</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
